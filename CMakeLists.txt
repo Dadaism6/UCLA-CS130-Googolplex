@@ -32,14 +32,16 @@ set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost 1.50 REQUIRED COMPONENTS system)
 message(STATUS "Boost version: ${Boost_VERSION}")
 
-# include_directories(include)
+include_directories(include)
 
-# TODO(!): Update name and srcs
-# add_library(example_lib src/example_lib.cc)
+# TODO(!): Update name and srcs whenever new source files are added
+add_library(session src/session.cc)
+add_library(server_src src/server.cc src/session.cc)
 
-# TODO(!): Update executable name, srcs, and deps
+# TODO(!): Update executable name, srcs, and deps, remember to add new 
+# libraries to target_link_libraries
 add_executable(server src/server_main.cc)
-target_link_libraries(server pthread Boost::system)
+target_link_libraries(server session server_src pthread Boost::system)
 
 # TODO(!): Update test executable name, srcs, and deps
 # add_executable(example_lib_test tests/example_lib_test.cc)
