@@ -41,11 +41,9 @@ add_library(config_parser src/config_parser.cc)
 
 # TODO(!): Update executable name, srcs, and deps, remember to add new 
 # libraries to target_link_libraries
-add_executable(server src/server_main.cc)
-target_link_libraries(server session server_src pthread Boost::system)
+add_executable(webserver src/server_main.cc)
+target_link_libraries(webserver session server_src config_parser pthread Boost::system)
 
-add_executable(config_parser_main src/config_parser_main.cc)
-target_link_libraries(config_parser_main config_parser)
 
 # TODO(!): Update test executable name, srcs, and deps
 # add_executable(example_lib_test tests/example_lib_test.cc)
