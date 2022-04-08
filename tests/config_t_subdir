@@ -1,0 +1,7 @@
+#should be true
+#check sub directives inside a block directives
+server {
+    location / {
+        root /data/www;
+    }
+}

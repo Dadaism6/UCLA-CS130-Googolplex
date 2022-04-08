@@ -1,0 +1,7 @@
+#should be true
+#simply check comment in new line
+server {
+  listen   80;
+  server_name dada.com;
+  root /home/chenda/dada/;
+}

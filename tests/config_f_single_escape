@@ -1,0 +1,4 @@
+#should be false
+#check no escape for single quote
+username '"chenda';
+username2 ''chenda2';

@@ -1,0 +1,11 @@
+#should be false
+#check wrong number of bracket
+server {
+    location / {
+        root /data/www;
+    }
+
+    location /images/ {
+        root /data;
+    }
+}}

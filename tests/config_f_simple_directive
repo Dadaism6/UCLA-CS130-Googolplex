@@ -1,0 +1,3 @@
+#should be false
+#check simple directive without semicolon
+username "chenda"

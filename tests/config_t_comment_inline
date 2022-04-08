@@ -1,0 +1,7 @@
+#should be true
+#check comment inline
+server {
+  listen   80;
+  server_name dada.com; #ABCDEFG this should work without problem
+  root /home/chendaduan/dada/;
+}

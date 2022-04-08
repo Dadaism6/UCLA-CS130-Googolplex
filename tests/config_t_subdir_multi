@@ -1,0 +1,12 @@
+#should be true
+#check multiple sub directives inside a block directives
+server {
+    location / {
+        root /data/www;
+    }
+
+    location /images/ {
+        root /data;
+	listen 80;
+    }
+}

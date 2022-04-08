@@ -1,0 +1,4 @@
+#should be false
+#check no escape for double quote
+username ""chenda";
+username2 "'chenda2";
