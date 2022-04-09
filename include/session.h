@@ -4,6 +4,9 @@
 #include <cstdlib>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
+#include "http/request.h"
+#include "http/request_parser.h"
+#include "http/reply.h"
 
 using boost::asio::ip::tcp;
 

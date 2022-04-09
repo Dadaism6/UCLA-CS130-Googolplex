@@ -4,6 +4,8 @@
 #include <boost/asio.hpp>
 
 #include "session.h"
+#include "http/request_parser.h"
+#include "http/reply.h"
 
 using boost::asio::ip::tcp;
 
