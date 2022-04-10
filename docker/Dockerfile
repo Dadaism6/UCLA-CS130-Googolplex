@@ -17,15 +17,16 @@ RUN ctest --output-on_failure
 FROM ubuntu:focal as deploy
 
 # TODO(!): Copy server output binary to "."
-# COPY --from=builder /usr/src/project/build/bin/example_server .
+COPY --from=builder /usr/src/project/build/bin/webserver .
+COPY --from=builder /usr/src/project/tests/config_t_port .
 
 # TODO(!): Expose some port(s)
-# EXPOSE 80
+EXPOSE 80
 
 # Use ENTRYPOINT to specify the binary name
 # TODO(!): Update with real server name
-# ENTRYPOINT ["./example_server"]
+ENTRYPOINT ["./webserver"]
 
 # Use CMD to specify arguments to ENTRYPOINT
 # TODO(!): Update with real server args
-# CMD [""]
+CMD ["config_t_port"]
