@@ -92,5 +92,5 @@ TEST_F(NginxConfigParserTest,Complex){
 TEST_F(NginxConfigParserTest,onlyPort){
   bool success = parser.Parse("config_t_port", &out_config, &port);
   EXPECT_TRUE(success);
-  EXPECT_TRUE(port==8080);
+  EXPECT_TRUE(port==80);
 }
