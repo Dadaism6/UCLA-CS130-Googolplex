@@ -20,24 +20,24 @@ using boost::asio::ip::tcp;
 
 int main(int argc, char* argv[])
 { 
-  try
-  {
-    if (argc != 2) {
-      std::cerr << "Usage: webserver <config_file>\n";
-      return 1;
-    }
-    int port = -1;
-    NginxConfigParser config_parser;
-    NginxConfig config;
-    config_parser.Parse(argv[1], &config, &port);
-    boost::asio::io_service io_service;
-    using namespace std; // For atoi.
-    server s(io_service,port);
-    io_service.run();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Exception: " << e.what() << "\n";
-  }
-  return 0;  
+	try
+	{
+		if (argc != 2) {
+			std::cerr << "Usage: webserver <config_file>\n";
+			return 1;
+		}
+		int port = -1;
+		NginxConfigParser config_parser;
+		NginxConfig config;
+		config_parser.Parse(argv[1], &config, &port);
+		boost::asio::io_service io_service;
+		using namespace std; // For atoi.
+		server s(io_service,port);
+		io_service.run();
+	}
+	catch (std::exception& e)
+	{
+		std::cerr << "Exception: " << e.what() << "\n";
+	}
+	return 0;  
 }
