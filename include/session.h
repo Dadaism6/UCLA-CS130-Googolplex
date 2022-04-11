@@ -26,13 +26,13 @@ class session
 		void handle_write(const boost::system::error_code& error);
 		
 		tcp::socket socket_;
-		int next_out_data_fill_pos;
+		int current_data_len;
 		char last4bytes_[5];
 		enum { max_length = 1024 };
-		enum { header_length = 45 };
 		char in_data_[max_length];
-		char out_data_[max_length + header_length]; // header length is 45
-		char response_header_ [header_length + 1];
+		char response_content_[max_length * 2]; // make space for header
+		char response_data_[max_length];
+		char response_header_[max_length];
 	
 };
 
