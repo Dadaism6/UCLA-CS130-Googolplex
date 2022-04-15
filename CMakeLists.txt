@@ -38,11 +38,12 @@ include_directories(include)
 add_library(session src/session.cc)
 add_library(server_src src/server.cc src/session.cc)
 add_library(config_parser src/config_parser.cc)
+add_library(request_parser src/http/request_parser.cc src/http/reply.cc)
 
 # Update executable name, srcs, and deps, remember to add new 
 # libraries to target_link_libraries
 add_executable(webserver src/server_main.cc)
-target_link_libraries(webserver session server_src config_parser pthread Boost::system)
+target_link_libraries(webserver session server_src config_parser request_parser pthread Boost::system)
 
 
 # Update test executable name, srcs, and deps
@@ -51,14 +52,18 @@ target_link_libraries(webserver session server_src config_parser pthread Boost::
 add_executable(config_parser_test tests/config_parser_test.cc)
 target_link_libraries(config_parser_test config_parser gtest_main)
 
+add_executable(server_test tests/server_test.cc)
+target_link_libraries(server_test server_src request_parser gtest_main gmock_main)
+
 # Update with test binary
 # gtest_discover_tests(example_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
+add_test(NAME ServerIntegrationTest COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration.sh)
 
 # Update with target/test targets
 # include(cmake/CodeCoverageReportConfig.cmake)
 # generate_coverage_report(TARGETS example_server example_lib TESTS example_lib_test)
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS config_parser_main config_parser TESTS config_parser_test)
-
-add_test(NAME ServerIntegrationTest COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration.sh)
+generate_coverage_report(TARGETS config_parser server config_parser TESTS config_parser_test server_test)
