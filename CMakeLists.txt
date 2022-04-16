@@ -71,4 +71,4 @@ add_test(NAME ServerIntegrationTest COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tes
 # include(cmake/CodeCoverageReportConfig.cmake)
 # generate_coverage_report(TARGETS example_server example_lib TESTS example_lib_test)
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS session server_src config_parser webserver TESTS config_parser_test server_test)
+generate_coverage_report(TARGETS session server_src config_parser TESTS config_parser_test server_test session_test)
