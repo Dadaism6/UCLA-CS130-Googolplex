@@ -56,10 +56,14 @@ target_link_libraries(config_parser_test config_parser gtest_main)
 add_executable(server_test tests/server_test.cc)
 target_link_libraries(server_test server_src request_parser reply gtest_main gmock_main)
 
+add_executable(session_test tests/session_test.cc)
+target_link_libraries(session_test session request_parser reply gtest_main gmock_main)
+
 # Update with test binary
 # gtest_discover_tests(example_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_test(NAME ServerIntegrationTest COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration.sh)
 

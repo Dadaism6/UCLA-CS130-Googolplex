@@ -30,7 +30,7 @@ class session
 		void handle_write(const boost::system::error_code& error);
 		
 		tcp::socket socket_;
-		enum { max_length = 1024 };
+		enum { max_length = 1024,  content_length_field = 0, content_type_field = 1};
 		char in_data_[max_length];
 
 		http::server::request_parser request_parser_;

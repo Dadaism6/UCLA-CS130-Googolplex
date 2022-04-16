@@ -76,11 +76,19 @@ http::server::reply session::add_header(char* in_data, int bytes_transferred)
 	if (valid) rep = http::server::reply::stock_reply(http::server::reply::ok);
 	else rep = http::server::reply::stock_reply(http::server::reply::bad_request);
 
-	std::string response_content(in_data);
+	if (in_data == nullptr) {
+		rep.content = "";
+		rep.headers[0].value = "0";
+	} else {
+		std::string response_content(in_data);
+		rep.content = response_content; // set the content to be the http request
 
-	rep.content = response_content; // set the content to be the http request
-	rep.headers[0].value = std::to_string(bytes_transferred);	// content length
-	rep.headers[1].value = "text/plain";	// content type
+		if (strlen(in_data) != bytes_transferred)
+			rep.headers[content_length_field].value = std::to_string(strlen(in_data));
+		else
+			rep.headers[content_length_field].value = std::to_string(bytes_transferred);	// content length	
+	}
+	rep.headers[content_type_field].value = "text/plain";	// content type
 
 	return rep;
 }
@@ -88,6 +96,7 @@ http::server::reply session::add_header(char* in_data, int bytes_transferred)
 // check whether the http request is valid or not 
 bool session::parse_request(char* request_data, int current_data_len)
 {
+	if (current_data_len < 0 || current_data_len > max_length || request_data == nullptr) return false;
 	char* dummy; // want to ignore the result, use a dummy char*
 	http::server::request_parser::result_type result;
 	http::server::request request;
