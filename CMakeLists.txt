@@ -38,12 +38,13 @@ include_directories(include)
 add_library(session src/session.cc)
 add_library(server_src src/server.cc src/session.cc)
 add_library(config_parser src/config_parser.cc)
-add_library(request_parser src/http/request_parser.cc src/http/reply.cc)
+add_library(request_parser src/http/request_parser.cc)
+add_library(reply src/http/reply.cc)
 
 # Update executable name, srcs, and deps, remember to add new 
 # libraries to target_link_libraries
 add_executable(webserver src/server_main.cc)
-target_link_libraries(webserver session server_src config_parser request_parser pthread Boost::system)
+target_link_libraries(webserver session server_src config_parser request_parser reply pthread Boost::system)
 
 
 # Update test executable name, srcs, and deps
@@ -53,7 +54,7 @@ add_executable(config_parser_test tests/config_parser_test.cc)
 target_link_libraries(config_parser_test config_parser gtest_main)
 
 add_executable(server_test tests/server_test.cc)
-target_link_libraries(server_test server_src request_parser gtest_main gmock_main)
+target_link_libraries(server_test server_src request_parser reply gtest_main gmock_main)
 
 # Update with test binary
 # gtest_discover_tests(example_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)

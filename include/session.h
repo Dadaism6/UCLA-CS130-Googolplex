@@ -20,9 +20,8 @@ class session
 
 		void start();
 
-		void clear_data();
-		void add_header(char* in_data, int bytes_transferred);
-		void parse_request(char* request_data, int current_data_len);
+		http::server::reply add_header(char* in_data, int bytes_transferred);
+		bool parse_request(char* request_data, int current_data_len);
 
 	private:
 		void handle_read(const boost::system::error_code& error,
@@ -31,13 +30,8 @@ class session
 		void handle_write(const boost::system::error_code& error);
 		
 		tcp::socket socket_;
-		int current_data_len_;
-		// char last4bytes_[5];
 		enum { max_length = 1024 };
 		char in_data_[max_length];
-		char response_content_[max_length * 2]; // make space for header
-		char response_data_[max_length];
-		char response_header_[max_length];
 
 		http::server::request_parser request_parser_;
 	
