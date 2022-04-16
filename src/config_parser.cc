@@ -34,6 +34,7 @@ int safeportSTOI(std::string stringnumber) {
 	if(result < 0 || result > 65535)
 	{
 		std::cerr << "ERROR: Port number not valid: shoud be between 0 - 65535" << std::endl;
+		result = -1;
 	}
 	return result;
 }
@@ -250,6 +251,9 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, in
 					int currport = safeportSTOI(token);
 					if(currport != -1){
 						*port = currport;
+					} else {
+						// Invalid port number, error
+						break;
 					}
 				}
 			}
