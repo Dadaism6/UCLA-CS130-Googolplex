@@ -23,48 +23,45 @@ tcp::socket& session::socket()
 
 void session::start()
 {
-	socket_.async_read_some(boost::asio::buffer(in_data_, max_length),
-		boost::bind(&session::handle_read, this,
-			boost::asio::placeholders::error,
-			boost::asio::placeholders::bytes_transferred
-		)
-	);
+	socket_.async_read_some(boost::asio::buffer(in_data_, max_length), boost::bind(&session::handle_read, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 }
 
+void session::read()
+{
+	boost::asio::async_write(socket_, rep_.to_buffers(), boost::bind(&session::handle_write, this, boost::asio::placeholders::error));
+}
 
-void session::handle_read(const boost::system::error_code& error, size_t bytes_transferred)
+void session::recycle()
+{
+	delete this;
+}
+
+bool session::handle_read(const boost::system::error_code& error, size_t bytes_transferred)
 {
 	if (!error)
 	{
-		http::server::reply rep = add_header(in_data_, bytes_transferred);
+		rep_ = add_header(in_data_, bytes_transferred);
 		memset(in_data_, 0, max_length); // clear to prepare for new incoming data
-		boost::asio::async_write(socket_,
-				rep.to_buffers(),
-				boost::bind(&session::handle_write, this,
-					boost::asio::placeholders::error)
-		);
+		read();
 	}
 	else
 	{
-		delete this;
+		recycle();
 	}
+	return (!error);
 }
 
-void session::handle_write(const boost::system::error_code& error)
+bool session::handle_write(const boost::system::error_code& error)
 {
 	if (!error)
 	{
-		socket_.async_read_some(boost::asio::buffer(in_data_, max_length),
-			boost::bind(&session::handle_read, this,
-				boost::asio::placeholders::error,
-				boost::asio::placeholders::bytes_transferred
-			)
-		);
+		start();
 	}
 	else
 	{
-		delete this;
+		recycle();
 	}
+	return (!error);
 }
 
 

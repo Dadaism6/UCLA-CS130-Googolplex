@@ -14,7 +14,7 @@ class server
 	public:
 		server(boost::asio::io_service& io_service, short port);
 		virtual void start_accept();
-		virtual	void handle_accept(session* new_session,
+		bool handle_accept(session* new_session,
 			const boost::system::error_code& error);
 
 	private:

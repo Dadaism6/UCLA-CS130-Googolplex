@@ -3,6 +3,8 @@
 #include "session.h"
 #include "http/reply.h"
 
+using ::testing::AtLeast;    
+
 class SessionTest:public::testing::Test
 {
     protected:
@@ -13,16 +15,17 @@ class SessionTest:public::testing::Test
         char request_data_4[6] = "hello";
         bool status;
         http::server::reply rep;
+        boost::system::error_code success_ec = boost::system::errc::make_error_code(boost::system::errc::success);
+        boost::system::error_code bad_ec = boost::system::errc::make_error_code(boost::system::errc::connection_refused);
 };
 
-// attempt for mock test
+
 class MockSession: public session {
     public:
-        boost::asio::io_service io_service;
-        MockSession() : session(io_service) {}
-        // MOCK_METHOD(void, start, (), (override));
-        MOCK_METHOD(void, handle_read, (const boost::system::error_code&, size_t), (override));
-        MOCK_METHOD(void, handle_write, (const boost::system::error_code&), (override));
+        using session::session;
+        void start() {std::cout << "start: dummy function here" << std::endl; }
+        void recycle() {std::cout << "recycle: dummy function here" << std::endl; }
+        void read() {std::cout << "read: dummy function here" << std::endl; }
 };
 
 // test session constructor
@@ -31,13 +34,33 @@ TEST_F(SessionTest, SessionConstruction) {
     EXPECT_TRUE(true);
 }
 
-// attempt for mock test
-// TEST_F(SessionTest, SessionStart) {
-//     MockSession* mock_session = new MockSession();
-//     mock_session -> start();
-//     EXPECT_TRUE(true);
-//     delete mock_session;
-// }
+// handle write with error code (success)
+TEST_F(SessionTest, SessionHandleWrite_1) {
+    MockSession mock_s(io_service);
+    status = mock_s.handle_write(success_ec);
+    EXPECT_TRUE(status);
+}
+
+// handle write with error code (bad)
+TEST_F(SessionTest, SessionHandleWrite_2) {
+    MockSession mock_s(io_service);
+    status = mock_s.handle_write(bad_ec);
+    EXPECT_FALSE(status);
+}
+
+// handle read with error code (success)
+TEST_F(SessionTest, SessionHandleRead_1) {
+    MockSession mock_s(io_service);
+    status = mock_s.handle_read(success_ec, 0);
+    EXPECT_TRUE(status);
+}
+
+// handle read with error code (bad)
+TEST_F(SessionTest, SessionHandleRead_2) {
+    MockSession mock_s(io_service);
+    status = mock_s.handle_read(bad_ec, 0);
+    EXPECT_FALSE(status);
+}
 
 // negative data length
 TEST_F(SessionTest, ParseRequest_1) {

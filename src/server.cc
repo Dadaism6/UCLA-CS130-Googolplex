@@ -23,7 +23,7 @@ void server::start_accept()
             boost::asio::placeholders::error));
 }
 
-void server::handle_accept(session* new_session,
+bool server::handle_accept(session* new_session,
     const boost::system::error_code& error)
 {
     if (!error)
@@ -33,9 +33,11 @@ void server::handle_accept(session* new_session,
     else
     {
         delete new_session;
+        new_session = NULL;
     }
 
     start_accept();
+    return (new_session == nullptr);
 }
 
 
