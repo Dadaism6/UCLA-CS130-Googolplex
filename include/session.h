@@ -24,9 +24,9 @@ class session
 		http::server::reply add_header(char* in_data, int bytes_transferred);
 		bool parse_request(char* request_data, int current_data_len);
 
-		bool handle_read(const boost::system::error_code& error,
+		virtual bool handle_read(const boost::system::error_code& error,
 			size_t bytes_transferred);
-		bool handle_write(const boost::system::error_code& error);
+		virtual bool handle_write(const boost::system::error_code& error);
 
 	private:
 		tcp::socket socket_;

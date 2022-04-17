@@ -4,6 +4,7 @@
 #include "http/reply.h"
 
 using ::testing::AtLeast;    
+using ::testing::_;
 
 class SessionTest:public::testing::Test
 {
@@ -19,47 +20,47 @@ class SessionTest:public::testing::Test
         boost::system::error_code bad_ec = boost::system::errc::make_error_code(boost::system::errc::connection_refused);
 };
 
-
+// gmock session class
 class MockSession: public session {
     public:
-        using session::session;
-        void start() {std::cout << "start: dummy function here" << std::endl; }
-        void recycle() {std::cout << "recycle: dummy function here" << std::endl; }
-        void read() {std::cout << "read: dummy function here" << std::endl; }
+        MockSession(boost::asio::io_service& io_service) : session(io_service) {}
+        MOCK_METHOD0(start, void());
+        MOCK_METHOD0(read, void());
+        MOCK_METHOD0(recycle, void());
 };
+
+// mock test handle_write with no error code
+TEST_F(SessionTest, MockWrite1) {
+    MockSession mocksession(io_service);
+    EXPECT_CALL(mocksession, start()).Times(AtLeast(1));
+    mocksession.handle_write(success_ec);
+} 
+
+// mock test handle_write with error code
+TEST_F(SessionTest, MockWrite2) {
+    MockSession mocksession(io_service);
+    EXPECT_CALL(mocksession, recycle()).Times(AtLeast(1));
+    mocksession.handle_write(bad_ec);
+} 
+
+// mock test handle_read with no error code
+TEST_F(SessionTest, MockRead1) {
+    MockSession mocksession(io_service);
+    EXPECT_CALL(mocksession, read()).Times(AtLeast(1));
+    mocksession.handle_read(success_ec, 0);
+} 
+
+// mock test handle_read with error code
+TEST_F(SessionTest, MockRead2) {
+    MockSession mocksession(io_service);
+    EXPECT_CALL(mocksession, recycle()).Times(AtLeast(1));
+    mocksession.handle_read(bad_ec, 0);
+} 
 
 // test session constructor
 TEST_F(SessionTest, SessionConstruction) {
     session s(io_service);
     EXPECT_TRUE(true);
-}
-
-// handle write with error code (success)
-TEST_F(SessionTest, SessionHandleWrite_1) {
-    MockSession mock_s(io_service);
-    status = mock_s.handle_write(success_ec);
-    EXPECT_TRUE(status);
-}
-
-// handle write with error code (bad)
-TEST_F(SessionTest, SessionHandleWrite_2) {
-    MockSession mock_s(io_service);
-    status = mock_s.handle_write(bad_ec);
-    EXPECT_FALSE(status);
-}
-
-// handle read with error code (success)
-TEST_F(SessionTest, SessionHandleRead_1) {
-    MockSession mock_s(io_service);
-    status = mock_s.handle_read(success_ec, 0);
-    EXPECT_TRUE(status);
-}
-
-// handle read with error code (bad)
-TEST_F(SessionTest, SessionHandleRead_2) {
-    MockSession mock_s(io_service);
-    status = mock_s.handle_read(bad_ec, 0);
-    EXPECT_FALSE(status);
 }
 
 // negative data length

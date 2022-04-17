@@ -9,9 +9,9 @@ using ::testing::_;
 class MockSessionReal : public session {
   public:
     MockSessionReal(boost::asio::io_service& io_service) : session(io_service) {}
-    MOCK_METHOD2(handle_read, void(const boost::system::error_code&,
+    MOCK_METHOD2(handle_read, bool(const boost::system::error_code&,
 			size_t));
-    MOCK_METHOD1(handle_write, void(const boost::system::error_code&));
+    MOCK_METHOD1(handle_write, bool(const boost::system::error_code&));
     MOCK_METHOD0(start, void());
 };
 
