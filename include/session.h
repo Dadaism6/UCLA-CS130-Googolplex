@@ -18,17 +18,16 @@ class session
 
 		tcp::socket& socket();
 
-		void start();
+		virtual void start();
 
 		http::server::reply add_header(char* in_data, int bytes_transferred);
 		bool parse_request(char* request_data, int current_data_len);
 
-	private:
-		void handle_read(const boost::system::error_code& error,
+		virtual void handle_read(const boost::system::error_code& error,
 			size_t bytes_transferred);
+		virtual void handle_write(const boost::system::error_code& error);
 
-		void handle_write(const boost::system::error_code& error);
-		
+	private:
 		tcp::socket socket_;
 		enum { max_length = 1024,  content_length_field = 0, content_type_field = 1};
 		char in_data_[max_length];

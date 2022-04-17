@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+#include "gmock/gmock.h"
 #include "session.h"
 #include "http/reply.h"
 
@@ -14,11 +15,29 @@ class SessionTest:public::testing::Test
         http::server::reply rep;
 };
 
+// attempt for mock test
+class MockSession: public session {
+    public:
+        boost::asio::io_service io_service;
+        MockSession() : session(io_service) {}
+        // MOCK_METHOD(void, start, (), (override));
+        MOCK_METHOD(void, handle_read, (const boost::system::error_code&, size_t), (override));
+        MOCK_METHOD(void, handle_write, (const boost::system::error_code&), (override));
+};
+
 // test session constructor
 TEST_F(SessionTest, SessionConstruction) {
     session s(io_service);
     EXPECT_TRUE(true);
 }
+
+// attempt for mock test
+// TEST_F(SessionTest, SessionStart) {
+//     MockSession* mock_session = new MockSession();
+//     mock_session -> start();
+//     EXPECT_TRUE(true);
+//     delete mock_session;
+// }
 
 // negative data length
 TEST_F(SessionTest, ParseRequest_1) {
