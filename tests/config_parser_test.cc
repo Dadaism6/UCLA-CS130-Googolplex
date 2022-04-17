@@ -7,121 +7,135 @@ class NginxConfigParserTest:public::testing::Test //Test fixture class, to initi
   NginxConfigParser parser;
   NginxConfig out_config;
   int port = -1;
+  bool status;
 };
 
 TEST_F(NginxConfigParserTest, SimpleConfig){
-  bool success = parser.Parse("example_config", &out_config, &port);
-  EXPECT_TRUE(success);
+  status = parser.Parse("example_config", &out_config, &port);
+  EXPECT_TRUE(status);
   EXPECT_TRUE(port==80);
 }
 
 TEST_F(NginxConfigParserTest, Comments){
-  bool success = parser.Parse("config_t_comment", &out_config, &port);
-  EXPECT_TRUE(success);
+  status = parser.Parse("config_t_comment", &out_config, &port);
+  EXPECT_TRUE(status);
   EXPECT_TRUE(port==80);
 }
 
 TEST_F(NginxConfigParserTest, CommentsInline){
-  bool success = parser.Parse("config_t_comment_inline", &out_config, &port);
-  EXPECT_TRUE(success);
+  status = parser.Parse("config_t_comment_inline", &out_config, &port);
+  EXPECT_TRUE(status);
   EXPECT_TRUE(port==80);
 }
 
 TEST_F(NginxConfigParserTest, SimpleDirective){
-  bool success = parser.Parse("config_t_simple_directive", &out_config, &port);
-  EXPECT_TRUE(success);
+  status = parser.Parse("config_t_simple_directive", &out_config, &port);
+  EXPECT_TRUE(status);
   EXPECT_TRUE(port==-1);
 }
 
 TEST_F(NginxConfigParserTest, SimpleDirectiveFalse){
-  bool success = parser.Parse("config_f_simple_directive", &out_config, &port);
-  EXPECT_FALSE(success);
+  status = parser.Parse("config_f_simple_directive", &out_config, &port);
+  EXPECT_FALSE(status);
 }
 
 TEST_F(NginxConfigParserTest, EmptyBracket){
-  bool success = parser.Parse("config_t_emptybracket", &out_config, &port);
-  EXPECT_TRUE(success);
+  status = parser.Parse("config_t_emptybracket", &out_config, &port);
+  EXPECT_TRUE(status);
   EXPECT_TRUE(port==-1);
 }
 
 TEST_F(NginxConfigParserTest, SubDir){
-  bool success = parser.Parse("config_t_subdir", &out_config, &port);
-  EXPECT_TRUE(success);
+  status = parser.Parse("config_t_subdir", &out_config, &port);
+  EXPECT_TRUE(status);
   EXPECT_TRUE(port==-1);
 }
 
 TEST_F(NginxConfigParserTest, SubDirMulti){
-  bool success = parser.Parse("config_t_subdir_multi", &out_config, &port);
-  EXPECT_TRUE(success);
+  status = parser.Parse("config_t_subdir_multi", &out_config, &port);
+  EXPECT_TRUE(status);
   EXPECT_TRUE(port==80);
 }
 
 TEST_F(NginxConfigParserTest, WrongBracket){
-  bool success = parser.Parse("config_f_WrongBracket", &out_config, &port);
-  EXPECT_FALSE(success);
+  status = parser.Parse("config_f_WrongBracket", &out_config, &port);
+  EXPECT_FALSE(status);
 }
 
 TEST_F(NginxConfigParserTest, TrueSingleEscape){
-  bool success = parser.Parse("config_t_single_escape", &out_config, &port);
-  EXPECT_TRUE(success);
+  status = parser.Parse("config_t_single_escape", &out_config, &port);
+  EXPECT_TRUE(status);
   EXPECT_TRUE(port==-1);  
 }
 
 TEST_F(NginxConfigParserTest, TrueDoubleEscape){
-  bool success = parser.Parse("config_t_double_escape", &out_config, &port);
-  EXPECT_TRUE(success);
+  status = parser.Parse("config_t_double_escape", &out_config, &port);
+  EXPECT_TRUE(status);
   EXPECT_TRUE(port==-1);
 }
 
 TEST_F(NginxConfigParserTest, FalseSingleEscape){
-  bool success = parser.Parse("config_f_single_escape", &out_config, &port);
-  EXPECT_FALSE(success);
+  status = parser.Parse("config_f_single_escape", &out_config, &port);
+  EXPECT_FALSE(status);
 }
 
 TEST_F(NginxConfigParserTest, FalseDoubleEscape){
-  bool success = parser.Parse("config_f_double_escape", &out_config, &port);
-  EXPECT_FALSE(success);
+  status = parser.Parse("config_f_double_escape", &out_config, &port);
+  EXPECT_FALSE(status);
 }
 
 TEST_F(NginxConfigParserTest, Complex){
-  bool success = parser.Parse("config_t_complex", &out_config, &port);
-  EXPECT_TRUE(success);
+  status = parser.Parse("config_t_complex", &out_config, &port);
+  EXPECT_TRUE(status);
   EXPECT_TRUE(port==80);
 }
 
 TEST_F(NginxConfigParserTest, onlyPort){
-  bool success = parser.Parse("config_t_port", &out_config, &port);
-  EXPECT_TRUE(success);
+  status = parser.Parse("config_t_port", &out_config, &port);
+  EXPECT_TRUE(status);
   EXPECT_TRUE(port==80);
 }
 
 TEST_F(NginxConfigParserTest, outRangePort){
-  bool success = parser.Parse("config_f_port_out_range", &out_config, &port);
-  EXPECT_FALSE(success);
+  status = parser.Parse("config_f_port_out_range", &out_config, &port);
+  EXPECT_FALSE(status);
 }
 
 TEST_F(NginxConfigParserTest, largeIntPort){
-  bool success = parser.Parse("config_f_port_large_int", &out_config, &port);
-  EXPECT_FALSE(success);
+  status = parser.Parse("config_f_port_large_int", &out_config, &port);
+  EXPECT_FALSE(status);
 }
 
 TEST_F(NginxConfigParserTest, stringPort){
-  bool success = parser.Parse("config_f_port_string", &out_config, &port);
-  EXPECT_FALSE(success);
+  status = parser.Parse("config_f_port_string", &out_config, &port);
+  EXPECT_FALSE(status);
 }
 
 TEST_F(NginxConfigParserTest, tabNewline){
-  bool success = parser.Parse("config_t_tab_newline", &out_config, &port);
-  EXPECT_FALSE(success);
+  status = parser.Parse("config_t_tab_newline", &out_config, &port);
+  EXPECT_FALSE(status);
 }
 
 
 TEST_F(NginxConfigParserTest, NoSemicolonConfig) {
-  bool success = parser.Parse("config_f_no_semicolon", &out_config, &port);
-  EXPECT_FALSE(success);
+  status = parser.Parse("config_f_no_semicolon", &out_config, &port);
+  EXPECT_FALSE(status);
 }
 
 TEST_F(NginxConfigParserTest, UnmatchBracketConfig) {
-  bool success = parser.Parse("config_f_unmatch_bracket", &out_config, &port);
-  EXPECT_FALSE(success);
+  status = parser.Parse("config_f_unmatch_bracket", &out_config, &port);
+  EXPECT_FALSE(status);
+}
+
+TEST_F(NginxConfigParserTest, ToStringTest) {
+  status = parser.Parse("config_t_port", &out_config, &port);
+  ASSERT_TRUE(status);
+  std::string result = "listen 80;\n";
+  std::string config_str = out_config.ToString();
+  EXPECT_EQ(result, config_str);
+}
+
+TEST_F(NginxConfigParserTest, FileNotExist) {
+  status = parser.Parse("not_exist", &out_config, &port);
+  ASSERT_FALSE(status);
 }
