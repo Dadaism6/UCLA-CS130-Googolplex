@@ -7,9 +7,8 @@ set -e
 cd ../build && cmake &>/dev/null .. && make &>/dev/null
 cd $SCRIPTPATH
 echo "Start the server and sending request..."
-../build/bin/webserver ./config_t_port &>/dev/null  & curl -s -I localhost:80 > ./tmp.txt
+timeout 5s ../build/bin/webserver ./config_t_port &>/dev/null  & curl -s -I localhost:80 > ./tmp.txt
 echo "Shutting down server"
-kill %-1
 echo "Compare the result"
 if cmp --silent ../tests/expected.txt ./tmp.txt ; then
     rm ./tmp.txt
