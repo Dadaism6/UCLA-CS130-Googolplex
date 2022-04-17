@@ -99,3 +99,29 @@ TEST_F(NginxConfigParserTest, outRangePort){
   bool success = parser.Parse("config_f_port_out_range", &out_config, &port);
   EXPECT_FALSE(success);
 }
+
+TEST_F(NginxConfigParserTest, largeIntPort){
+  bool success = parser.Parse("config_f_port_large_int", &out_config, &port);
+  EXPECT_FALSE(success);
+}
+
+TEST_F(NginxConfigParserTest, stringPort){
+  bool success = parser.Parse("config_f_port_string", &out_config, &port);
+  EXPECT_FALSE(success);
+}
+
+TEST_F(NginxConfigParserTest, tabNewline){
+  bool success = parser.Parse("config_t_tab_newline", &out_config, &port);
+  EXPECT_FALSE(success);
+}
+
+
+TEST_F(NginxConfigParserTest, NoSemicolonConfig) {
+  bool success = parser.Parse("config_f_no_semicolon", &out_config, &port);
+  EXPECT_FALSE(success);
+}
+
+TEST_F(NginxConfigParserTest, UnmatchBracketConfig) {
+  bool success = parser.Parse("config_f_unmatch_bracket", &out_config, &port);
+  EXPECT_FALSE(success);
+}

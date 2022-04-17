@@ -1,0 +1,8 @@
+# Test for missing semicolon at the end of token, should return false
+foo "bar";
+
+server {
+  listen   80;
+  server_name foo.com;
+  root /home/ubuntu/sites/foo/
+}
