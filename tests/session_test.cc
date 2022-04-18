@@ -201,3 +201,11 @@ TEST_F(SessionTest, AddHeader_10) {
     rep = s.add_header(request_data_3, 1025);
     EXPECT_EQ(rep.status, http::server::reply::bad_request);
 }
+
+// test recycle and delete
+TEST_F(SessionTest, SessionRecycle) {
+    session* s = new session(io_service);
+    s -> recycle();
+    ASSERT_DEATH({s -> recycle();}, "");
+    EXPECT_TRUE(true);
+}
