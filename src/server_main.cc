@@ -12,6 +12,7 @@
 #include <iostream>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
+#include <boost/log/trivial.hpp>
 
 #include "server.h"
 #include "session.h"
@@ -20,6 +21,7 @@ using boost::asio::ip::tcp;
 
 int main(int argc, char* argv[])
 { 
+	BOOST_LOG_TRIVIAL(trace) << "A trace test message";
 	try
 	{
 		if (argc != 2) {
