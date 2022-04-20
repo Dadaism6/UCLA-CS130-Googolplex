@@ -8,6 +8,7 @@
 #include "http/request.h"
 #include "http/request_parser.h"
 #include "http/reply.h"
+#include "request_handler.h"
 
 using boost::asio::ip::tcp;
 
@@ -21,8 +22,8 @@ class session
 		virtual void start();
 		virtual void recycle();
 		virtual void read();
-		http::server::reply add_header(char* in_data, int bytes_transferred);
-		bool parse_request(char* request_data, int current_data_len);
+		
+		http::server::reply parse_request(char* request_data, int current_data_len);
 
 		virtual bool handle_read(const boost::system::error_code& error,
 			size_t bytes_transferred);
@@ -35,6 +36,7 @@ class session
 		char in_data_[max_length];
 
 		http::server::request_parser request_parser_;
+		request_handler* request_handler_;
 	
 };
 

@@ -7,6 +7,9 @@
 #include "session.h"
 #include "http/request_parser.h"
 #include "http/reply.h"
+#include "request_handler.h"
+#include "request_handler_echo.h"
+#include "request_handler_static.h"
 
 using boost::asio::ip::tcp;
 
@@ -40,7 +43,7 @@ bool session::handle_read(const boost::system::error_code& error, size_t bytes_t
 {
 	if (!error)
 	{
-		rep_ = add_header(in_data_, bytes_transferred);
+		rep_ = parse_request(in_data_, bytes_transferred);
 		memset(in_data_, 0, max_length); // clear to prepare for new incoming data
 		read();
 	}
@@ -64,42 +67,45 @@ bool session::handle_write(const boost::system::error_code& error)
 	return (!error);
 }
 
-
-// return a reply struct by adding header to the content
-http::server::reply session::add_header(char* in_data, int bytes_transferred)
-{
-	bool valid = parse_request(in_data, bytes_transferred);
-	http::server::reply rep;
-	if (valid) rep = http::server::reply::stock_reply(http::server::reply::ok);
-	else rep = http::server::reply::stock_reply(http::server::reply::bad_request);
-
-	if (in_data == nullptr) {
-		rep.content = "";
-		rep.headers[0].value = "0";
-	} else {
-		std::string response_content(in_data);
-		rep.content = response_content; // set the content to be the http request
-
-		if (strlen(in_data) != bytes_transferred)
-			rep.headers[content_length_field].value = std::to_string(strlen(in_data));
-		else
-			rep.headers[content_length_field].value = std::to_string(bytes_transferred);	// content length	
-	}
-	rep.headers[content_type_field].value = "text/plain";	// content type
-
-	return rep;
-}
-
 // check whether the http request is valid or not 
-bool session::parse_request(char* request_data, int current_data_len)
+http::server::reply session::parse_request(char* request_data, int current_data_len)
 {
-	if (current_data_len < 0 || current_data_len > max_length || request_data == nullptr) return false;
+	bool valid = false;
 	char* dummy; // want to ignore the result, use a dummy char*
 	http::server::request_parser::result_type result;
 	http::server::request request;
-	std::tie(result, dummy) = request_parser_.parse(request, request_data, request_data + current_data_len);
 	
-	
-	if (result == http::server::request_parser::good) return true;
-	else return false;
+	bool static_server = false;
+	if (current_data_len < 0 || current_data_len > max_length || request_data == nullptr) 
+	{
+		valid = false;
+	} else {
+		std::tie(result, dummy) = request_parser_.parse(request, request_data, request_data + current_data_len);
+
+		if (request.uri == "/")
+			valid = true;	
+		else if (result == http::server::request_parser::good && request.uri[0] == '/') {
+			valid = true;
+			std::string delimiter = "/";
+			std::string actual_uri = request.uri.substr(1);
+			size_t pos = actual_uri.find(delimiter);
+			if (pos == std::string::npos) 
+				pos = actual_uri.length();
+			std::string mode = actual_uri.substr(0, pos);
+			if (mode == "static") {
+				request_handler_ = new request_handler_static(request, valid);
+				static_server = true;
+			} else if (mode != "echo") {
+				valid = false;
+			}
+		}
+	}
+	if ( !static_server)
+		request_handler_ = new request_handler_echo(request, valid);
+
+	std::string dummy_dir = "/usr/src/projects/googolplex/"; // should be configurable
+	http::server::reply rep = request_handler_ -> handle_request(request_data, dummy_dir);
+	delete request_handler_;
+	request_handler_ = NULL;
+	return rep;
 }
