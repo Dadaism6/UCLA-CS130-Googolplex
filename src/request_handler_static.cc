@@ -42,7 +42,7 @@ http::server::reply request_handler_static::handle_request(char* in_data, std::s
 	return rep;
 }
 
-std::string request_handler_static::set_content_type(std::string file_path, http::server::reply rep)
+std::string request_handler_static::set_content_type(std::string file_path, http::server::reply& rep)
 {
     std::string extension = "";
     std::string content_type = "";

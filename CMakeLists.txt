@@ -61,11 +61,15 @@ target_link_libraries(server_test server_src request_parser request_handler repl
 add_executable(session_test tests/session_test.cc)
 target_link_libraries(session_test session request_parser request_handler reply gtest_main gmock_main Boost::filesystem Boost::system Boost::log_setup Boost::log)
 
+add_executable(request_handler_test tests/request_handler_test.cc)
+target_link_libraries(request_handler_test request_handler reply request_parser gtest_main Boost::filesystem)
+
 # Update with test binary
 # gtest_discover_tests(example_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(request_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_test(NAME ServerIntegrationTest COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration.sh)
 add_test(NAME ServerIntegrationTest2 COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration_bad.sh)
@@ -74,4 +78,4 @@ add_test(NAME ServerIntegrationTest2 COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/te
 # include(cmake/CodeCoverageReportConfig.cmake)
 # generate_coverage_report(TARGETS example_server example_lib TESTS example_lib_test)
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS session server_src config_parser TESTS config_parser_test server_test session_test)
+generate_coverage_report(TARGETS session server_src config_parser request_handler TESTS config_parser_test server_test session_test request_handler_test)
