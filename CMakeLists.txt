@@ -53,13 +53,13 @@ target_link_libraries(webserver session server_src config_parser request_parser 
 # add_executable(example_lib_test tests/example_lib_test.cc)
 # target_link_libraries(example_lib_test example_lib gtest_main)
 add_executable(config_parser_test tests/config_parser_test.cc)
-target_link_libraries(config_parser_test config_parser gtest_main)
+target_link_libraries(config_parser_test config_parser gtest_main Boost::system Boost::log_setup Boost::log)
 
 add_executable(server_test tests/server_test.cc)
-target_link_libraries(server_test server_src request_parser request_handler reply gtest_main gmock_main Boost::filesystem)
+target_link_libraries(server_test server_src request_parser request_handler reply gtest_main gmock_main Boost::filesystem Boost::system Boost::log_setup Boost::log)
 
 add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test session request_parser request_handler reply gtest_main gmock_main Boost::filesystem)
+target_link_libraries(session_test session request_parser request_handler reply gtest_main gmock_main Boost::filesystem Boost::system Boost::log_setup Boost::log)
 
 # Update with test binary
 # gtest_discover_tests(example_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)

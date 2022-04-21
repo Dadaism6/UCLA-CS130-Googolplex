@@ -6,7 +6,6 @@
 //
 // How Nginx does it:
 //   http://lxr.nginx.org/source/src/core/ngx_conf_file.c
-
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -16,7 +15,7 @@
 #include <vector>
 #include <stdexcept> 
 #include "config_parser.h"
-
+#include "log.h"
 int safeportSTOI(std::string stringnumber) {
 	int result = -1;
 	try
@@ -307,7 +306,9 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, in
 bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config, int* port) {
 	std::ifstream config_file;
 	config_file.open(file_name);
+	src::severity_logger< logging::trivial::severity_level > lg;
 	if (!config_file.good()) {
+		BOOST_LOG_SEV(lg, logging::trivial::severity_level::error) << "Failed to open config file" << file_name <<"\n";
 		printf ("Failed to open config file: %s\n", file_name);
 		return false;
 	}
