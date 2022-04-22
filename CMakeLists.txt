@@ -37,23 +37,23 @@ include_directories(include)
 # Update name and srcs whenever new source files are added
 add_library(session src/session.cc)
 add_library(server_src src/server.cc src/session.cc)
-add_library(config_parser src/config_parser.cc)
+add_library(config_parser src/config_parser.cc src/log.cc)
 add_library(request_parser src/http/request_parser.cc)
 add_library(reply src/http/reply.cc)
+add_library(logger src/log.cc)
 
 add_library(request_handler src/request_handler_echo.cc src/request_handler_static.cc)
 
 # Update executable name, srcs, and deps, remember to add new 
 # libraries to target_link_libraries
 add_executable(webserver src/server_main.cc)
-target_link_libraries(webserver session server_src config_parser request_parser request_handler reply pthread Boost::system Boost::log_setup Boost::log Boost::filesystem)
-
+target_link_libraries(webserver logger session server_src config_parser request_parser request_handler reply pthread Boost::system Boost::filesystem Boost::log_setup Boost::log)
 
 # Update test executable name, srcs, and deps
 # add_executable(example_lib_test tests/example_lib_test.cc)
 # target_link_libraries(example_lib_test example_lib gtest_main)
 add_executable(config_parser_test tests/config_parser_test.cc)
-target_link_libraries(config_parser_test config_parser gtest_main Boost::system Boost::log_setup Boost::log)
+target_link_libraries(config_parser_test logger config_parser gtest_main Boost::system Boost::filesystem Boost::log_setup Boost::log)
 
 add_executable(server_test tests/server_test.cc)
 target_link_libraries(server_test server_src request_parser request_handler reply gtest_main gmock_main Boost::filesystem Boost::system Boost::log_setup Boost::log)
