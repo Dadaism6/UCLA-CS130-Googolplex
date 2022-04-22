@@ -25,15 +25,15 @@ int safeportSTOI(std::string stringnumber) {
 	}
 	catch(const std::invalid_argument& ia)
 	{
-		std::cerr << "ERROR: Port number not valid: not convertable" << std::endl;
+		ERROR << "Config Parser: Port number not valid: not convertable" << std::endl;
 	}
 	catch(const std::out_of_range& outrange)
 	{
-		std::cerr << "ERROR: Port number not valid: number of of int range" << std::endl;
+		ERROR << "Config Parser: Port number not valid: number of of int range" << std::endl;
 	}
 	if(result < 0 || result > 65535)
 	{
-		std::cerr << "ERROR: Port number not valid: shoud be between 0 - 65535" << std::endl;
+		ERROR << "Config Parser: Port number not valid: shoud be between 0 - 65535" << std::endl;
 		result = -1;
 	}
 	return result;
@@ -128,9 +128,6 @@ NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream* input, 
 					continue;
 				}
 			case TOKEN_STATE_SINGLE_QUOTE:
-				// TODO: the end of a quoted token should be followed by whitespace.
-				// TODO: Maybe also define a QUOTED_STRING token type.
-				// TODO: Allow for backslash-escaping within strings.
 				if (c =='\\'){
 					if(input->good()){
 						char c2 = input->get();
@@ -224,7 +221,6 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, in
   while (true) {
 	std::string token;
 	token_type = ParseToken(config_file, &token);
-	// printf ("%s: %s\n", TokenTypeAsString(token_type), token.c_str());
 	if (token_type == TOKEN_TYPE_ERROR) {
 		break;
 	}
@@ -291,7 +287,6 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, in
 		else if (remaining_bracket != 0) {//bracket mismatch
 			break;
 		}
-		// printf("!!!!!!!!!!!!!!!!!!!port number is: %d", *port);
 		return true;
 	} else {
 		// Error. Unknown token.
@@ -300,7 +295,7 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, in
 	last_token_type = token_type;
   }
 
-  printf ("Bad transition from %s to %s\n", TokenTypeAsString(last_token_type), TokenTypeAsString(token_type));
+  ERROR << "Config Parser: Bad transition from " << TokenTypeAsString(last_token_type) << " to " <<  TokenTypeAsString(token_type) << "\n";
   return false;
 }
 
@@ -308,7 +303,7 @@ bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config, int* p
 	std::ifstream config_file;
 	config_file.open(file_name);
 	if (!config_file.good()) {
-		ERROR << "Failed to open config file" << file_name << "\n";
+		ERROR << "Config Parser: Failed to open config file" << file_name << "\n";
 		return false;
 	}
 

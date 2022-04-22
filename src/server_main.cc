@@ -9,6 +9,7 @@
 //
 #include <cstdlib>
 #include <iostream>
+#include <csignal>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 
@@ -19,8 +20,19 @@
 
 using boost::asio::ip::tcp;
 
+// signal handler
+void signalHandler( int signum ) {
+   INFO << "Interrupt signal received. Shutting Down server. \n";
+   exit(signum);  
+}
+
 int main(int argc, char* argv[])
 { 
+	INFO << "Server Startup\n";
+
+	// handle Ctrl-C
+	signal(SIGINT, signalHandler); 
+
 	try
 	{
 		if (argc != 2) {
@@ -28,7 +40,7 @@ int main(int argc, char* argv[])
 			return 1;
 		}
 		int port = -1;
-		// INFO << "Preparing to parse the config file\n";
+		INFO << "Preparing to parse the config file\n";
 		NginxConfigParser config_parser;
 		NginxConfig config;
 		config_parser.Parse(argv[1], &config, &port);
