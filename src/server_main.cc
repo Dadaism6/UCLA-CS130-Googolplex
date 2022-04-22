@@ -22,7 +22,7 @@ using boost::asio::ip::tcp;
 
 // signal handler
 void signalHandler( int signum ) {
-   INFO << "Interrupt signal received. Shutting Down server. \n";
+   INFO << "Interrupt signal \"" << strsignal(signum) << "\" received. Shutting Down server. \n";
    exit(signum);  
 }
 
@@ -32,6 +32,10 @@ int main(int argc, char* argv[])
 
 	// handle Ctrl-C
 	signal(SIGINT, signalHandler); 
+	//handle timeout
+	signal(SIGALRM, signalHandler);
+	// handle process termination
+	signal(SIGTERM, signalHandler);
 
 	try
 	{

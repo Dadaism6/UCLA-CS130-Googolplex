@@ -72,7 +72,6 @@ gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
 gtest_discover_tests(request_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_test(NAME ServerIntegrationTest COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration.sh)
-add_test(NAME ServerIntegrationTest2 COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration_bad.sh)
 
 # Update with target/test targets
 # include(cmake/CodeCoverageReportConfig.cmake)

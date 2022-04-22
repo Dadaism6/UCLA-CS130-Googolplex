@@ -307,7 +307,7 @@ bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config, int* p
 	std::ifstream config_file;
 	config_file.open(file_name);
 	if (!config_file.good()) {
-		ERROR << "Config Parser: Failed to open config file" << file_name << "\n";
+		ERROR << "Config Parser: Failed to open config file " << file_name << "\n";
 		return false;
 	}
 	const bool return_value = Parse(dynamic_cast<std::istream*>(&config_file), config, port, basepath);
