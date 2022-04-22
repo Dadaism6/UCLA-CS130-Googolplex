@@ -14,6 +14,7 @@ class SessionTest:public::testing::Test
         char request_data_2[5] = "\r\n\r\n";
         char request_data_3[40] = "GET / HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
         char request_data_4[6] = "hello";
+        std::string basepath = "";
         bool status;
         http::server::reply rep;
         boost::system::error_code success_ec = boost::system::errc::make_error_code(boost::system::errc::success);
@@ -23,7 +24,7 @@ class SessionTest:public::testing::Test
 // gmock session class
 class MockSession: public session {
     public:
-        MockSession(boost::asio::io_service& io_service) : session(io_service) {}
+        MockSession(boost::asio::io_service& io_service, std::string basepath) : session(io_service, basepath) {}
         MOCK_METHOD0(start, void());
         MOCK_METHOD0(read, void());
         MOCK_METHOD0(recycle, void());
@@ -31,35 +32,35 @@ class MockSession: public session {
 
 // mock test handle_write with no error code
 TEST_F(SessionTest, MockWrite1) {
-    MockSession mocksession(io_service);
+    MockSession mocksession(io_service, basepath);
     EXPECT_CALL(mocksession, start()).Times(AtLeast(1));
     mocksession.handle_write(success_ec);
 } 
 
 // mock test handle_write with error code
 TEST_F(SessionTest, MockWrite2) {
-    MockSession mocksession(io_service);
+    MockSession mocksession(io_service, basepath);
     EXPECT_CALL(mocksession, recycle()).Times(AtLeast(1));
     mocksession.handle_write(bad_ec);
 } 
 
 // mock test handle_read with no error code
 TEST_F(SessionTest, MockRead1) {
-    MockSession mocksession(io_service);
+    MockSession mocksession(io_service, basepath);
     EXPECT_CALL(mocksession, read()).Times(AtLeast(1));
     mocksession.handle_read(success_ec, 0);
 } 
 
 // mock test handle_read with error code
 TEST_F(SessionTest, MockRead2) {
-    MockSession mocksession(io_service);
+    MockSession mocksession(io_service, basepath);
     EXPECT_CALL(mocksession, recycle()).Times(AtLeast(1));
     mocksession.handle_read(bad_ec, 0);
 } 
 
 // test session constructor
 TEST_F(SessionTest, SessionConstruction) {
-    session s(io_service);
+    session s(io_service, basepath);
     EXPECT_TRUE(true);
 }
 
@@ -204,7 +205,7 @@ TEST_F(SessionTest, SessionConstruction) {
 
 // test recycle and delete
 TEST_F(SessionTest, SessionRecycle) {
-    session* s = new session(io_service);
+    session* s = new session(io_service, basepath);
     s -> recycle();
     ASSERT_DEATH({s -> recycle();}, "");
     EXPECT_TRUE(true);

@@ -15,7 +15,7 @@ using boost::asio::ip::tcp;
 class session
 {
 	public:
-		session(boost::asio::io_service& io_service);
+		session(boost::asio::io_service& io_service, std::string basepath);
 
 		tcp::socket& socket();
 
@@ -37,7 +37,7 @@ class session
 
 		http::server::request_parser request_parser_;
 		request_handler* request_handler_;
-	
+		std::string basepath;
 };
 
 #endif  // SESSION_H

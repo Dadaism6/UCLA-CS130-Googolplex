@@ -10,11 +10,11 @@
 #include "request_handler.h"
 #include "request_handler_echo.h"
 #include "request_handler_static.h"
-
+#include "log.h"
 using boost::asio::ip::tcp;
 
 
-session::session(boost::asio::io_service& io_service) : socket_(io_service)
+session::session(boost::asio::io_service& io_service, std::string basepath) : socket_(io_service), basepath(basepath)
 {
 	memset(in_data_, 0, max_length);
 }
@@ -103,7 +103,7 @@ http::server::reply session::parse_request(char* request_data, int current_data_
 	if ( !static_server)
 		request_handler_ = new request_handler_echo(request, valid);
 
-	std::string dummy_dir = "/usr/src/projects/googolplex/"; // should be configurable
+	std::string dummy_dir = basepath; // should be configurable
 	http::server::reply rep = request_handler_ -> handle_request(request_data, dummy_dir);
 	delete request_handler_;
 	request_handler_ = NULL;

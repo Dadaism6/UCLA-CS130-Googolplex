@@ -40,12 +40,14 @@ int main(int argc, char* argv[])
 			return 1;
 		}
 		int port = -1;
+		std::string basepath = "";
 		INFO << "Preparing to parse the config file\n";
 		NginxConfigParser config_parser;
 		NginxConfig config;
-		config_parser.Parse(argv[1], &config, &port);
+		config_parser.Parse(argv[1], &config, &port, &basepath);
 		boost::asio::io_service io_service;
-		server s(io_service,port);
+		INFO << "Finish parsing, prepare to start the server\n";
+		server s(io_service,port, basepath);
 		io_service.run();
 	}
 	catch (std::exception& e)

@@ -211,13 +211,14 @@ NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream* input, 
 	return TOKEN_TYPE_EOF;
 }
 
-bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, int* port) {
+bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, int* port, std::string* basepath) {
   std::stack<NginxConfig*> config_stack;
   config_stack.push(config);
   TokenType last_token_type = TOKEN_TYPE_START;
   TokenType token_type;
   int remaining_bracket = 0;
   *port = -1;
+  *basepath = "";
   while (true) {
 	std::string token;
 	token_type = ParseToken(config_file, &token);
@@ -251,6 +252,9 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, in
 						// Invalid port number, error
 						break;
 					}
+				}
+				else if((last_token_type == TOKEN_TYPE_NORMAL) && (lastoken.compare("path") == 0)){
+					*basepath = token;
 				}
 			}
 			config_stack.top()->statements_.back().get()->tokens_.push_back(token);
@@ -299,15 +303,14 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, in
   return false;
 }
 
-bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config, int* port) {
+bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config, int* port, std::string* basepath) {
 	std::ifstream config_file;
 	config_file.open(file_name);
 	if (!config_file.good()) {
 		ERROR << "Config Parser: Failed to open config file" << file_name << "\n";
 		return false;
 	}
-
-	const bool return_value = Parse(dynamic_cast<std::istream*>(&config_file), config, port);
+	const bool return_value = Parse(dynamic_cast<std::istream*>(&config_file), config, port, basepath);
 	config_file.close();
 	return return_value;
 }

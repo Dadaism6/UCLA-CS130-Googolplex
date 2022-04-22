@@ -8,7 +8,7 @@ using ::testing::_;
 
 class MockSessionReal : public session {
   public:
-    MockSessionReal(boost::asio::io_service& io_service) : session(io_service) {}
+    MockSessionReal(boost::asio::io_service& io_service, std::string basepath) : session(io_service, basepath) {}
     MOCK_METHOD2(handle_read, bool(const boost::system::error_code&,
 			size_t));
     MOCK_METHOD1(handle_write, bool(const boost::system::error_code&));
@@ -23,6 +23,7 @@ class ServerTest:public::testing::Test
         boost::system::error_code bad_ec = boost::system::errc::make_error_code(boost::system::errc::connection_refused);
         short port = 8080;
         bool status;
+        std::string basepath= "";
 };
 
 class MockServer: public server {
@@ -41,15 +42,15 @@ class MockSession: public session {
 
 // test server construction
 TEST_F(ServerTest, ServerConstruction) {
-    server s(io_service,port);
+    server s(io_service,port,basepath);
     EXPECT_TRUE(true);
 }
 
 // server mock test using a mock session
 TEST_F(ServerTest, MockServerTest1) {
-    MockSessionReal m_session(io_service);
+    MockSessionReal m_session(io_service, basepath);
     EXPECT_CALL(m_session, start()).Times(AtLeast(1));
-    server m_server(io_service, port);
+    server m_server(io_service, port, basepath);
     MockSessionReal* session_ptr = &m_session;
     m_server.handle_accept(session_ptr, success_ec);
 }
@@ -58,8 +59,8 @@ TEST_F(ServerTest, MockServerTest1) {
 // cannot use gmock here, may raise child aborted
 // use self defined mock here
 TEST_F(ServerTest, HandleAccept_2) {
-    MockServer s(io_service, port);
-    MockSession* mock_session = new MockSession(io_service);
+    MockServer s(io_service, port, basepath);
+    MockSession* mock_session = new MockSession(io_service, basepath);
     status = s.handle_accept(mock_session, bad_ec);
     EXPECT_TRUE(status);
 }
