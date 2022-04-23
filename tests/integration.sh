@@ -4,7 +4,7 @@ SCRIPTPATH=$(dirname "$SCRIPT")
 cd $SCRIPTPATH
 echo "Script executed from: ${PWD}"
 set -e
-# cd ../build && cmake &>/dev/null .. && make &>/dev/null
+cd ../build && cmake &>/dev/null .. && make &>/dev/null
 cd $SCRIPTPATH
 
 # Test 1: testing good request

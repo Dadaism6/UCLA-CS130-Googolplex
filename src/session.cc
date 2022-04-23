@@ -26,6 +26,8 @@ tcp::socket& session::socket()
 
 void session::start()
 {
+	client_ip_ = socket_.remote_endpoint().address().to_string();
+	INFO << client_ip_ << ": Connection started" << "\n";
 	socket_.async_read_some(boost::asio::buffer(in_data_, max_length), boost::bind(&session::handle_read, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 }
 
@@ -113,7 +115,7 @@ http::server::reply session::parse_request(char* request_data, int current_data_
 	}
 	if ( !static_server)
 		request_handler_ = new request_handler_echo(request, valid);
-	http::server::reply rep = request_handler_ -> handle_request(request_data, dummy_dir, suffix);
+	http::server::reply rep = request_handler_ -> handle_request(request_data, dummy_dir, suffix, client_ip_);
 	delete request_handler_;
 	request_handler_ = NULL;
 	return rep;

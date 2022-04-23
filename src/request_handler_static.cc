@@ -8,7 +8,7 @@
 
 #include "request_handler_static.h"
 #include "log.h"
-http::server::reply request_handler_static::handle_request(char* in_data, std::string dir, std::string inputsuffix)
+http::server::reply request_handler_static::handle_request(char* in_data, std::string dir, std::string inputsuffix, std::string client_ip)
 {
     INFO << "Using static request handler\n";
 	http::server::reply rep;
@@ -17,10 +17,10 @@ http::server::reply request_handler_static::handle_request(char* in_data, std::s
     size_t pos = req_.uri.find(suffix);
     if (pos != std::string::npos && pos == 0 && req_.uri.length() > suffix.length()) {
         std::string path = dir + "/" + req_.uri.substr(suffix.length());
-        INFO << "Static request: trying to find: " << path << "\n";
+        INFO << client_ip << ": Static request: trying to find: " << path << "\n";
         std::ifstream file(path, std::ios::binary);
         if (file.good()) {
-            INFO << "Reading data...\n";
+            INFO << client_ip << ": Reading data...\n";
             file.seekg(0, std::ios::end);
             std::string content;
             content.resize(file.tellg());
@@ -31,7 +31,7 @@ http::server::reply request_handler_static::handle_request(char* in_data, std::s
             rep.headers[content_length_field].value = std::to_string(content.length());
 
             set_content_type(path, rep);
-            INFO << "Finish Setting Reply\n";
+            INFO << client_ip << ": Finish Setting Reply\n";
             file.close();
             return rep;
 

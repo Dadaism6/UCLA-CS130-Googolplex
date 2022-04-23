@@ -5,9 +5,9 @@
 
 #include "request_handler_echo.h"
 #include "log.h"
-http::server::reply request_handler_echo::handle_request(char* in_data, std::string dir, std::string suffix)
+http::server::reply request_handler_echo::handle_request(char* in_data, std::string dir, std::string suffix, std::string client_ip)
 {
-	INFO << "Using echo request handler\n";
+	INFO << client_ip << ": Using echo request handler\n";
 	http::server::reply rep;
 	if (valid_) 
 	{
@@ -16,7 +16,7 @@ http::server::reply request_handler_echo::handle_request(char* in_data, std::str
 	else 
 	{
         rep = http::server::reply::stock_reply(http::server::reply::bad_request);
-		WARNING << "Bad echo request\n"; 
+		WARNING << client_ip << ": Bad echo request\n"; 
 	}
 	if (in_data == nullptr) {
 		rep.content = "";

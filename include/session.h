@@ -31,6 +31,7 @@ class session
 		virtual bool handle_write(const boost::system::error_code& error);
 
 	private:
+		std::string client_ip_;
 		tcp::socket socket_;
 		http::server::reply rep_;
 		enum { max_length = 1024,  content_length_field = 0, content_type_field = 1};
