@@ -15,6 +15,9 @@ class SessionTest:public::testing::Test
         char request_data_2[5] = "\r\n\r\n";
         char request_data_3[40] = "GET / HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
         char request_data_4[6] = "hello";
+        char echo_request[44] = "GET /echo HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
+        char invalid_url[43] = "GET /ech HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
+        char static_request[51] = "GET /static/test HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
         std::map<std::string, std::string> addrmap;
         bool status;
         http::server::reply rep;
@@ -66,143 +69,77 @@ TEST_F(SessionTest, SessionConstruction) {
 }
 
 // negative data length
-// TEST_F(SessionTest, ParseRequest_1) {
-//     session s(io_service);
-//     status = s.parse_request(request_data_1, -1);
-//     EXPECT_FALSE(status);
-// }
+TEST_F(SessionTest, ParseRequest_1) {
+    session s(io_service, addrmap);
+    rep = s.parse_request(request_data_1, -1);
+    EXPECT_EQ(rep.status, http::server::reply::bad_request);
+}
 
-// // out of bound data length
-// TEST_F(SessionTest, ParseRequest_2) {
-//     session s(io_service);
-//     status = s.parse_request(request_data_2, 1025);
-//     EXPECT_FALSE(status);
-// }
+// out of bound data length
+TEST_F(SessionTest, ParseRequest_2) {
+    session s(io_service, addrmap);
+    rep = s.parse_request(request_data_2, 1025);
+    EXPECT_EQ(rep.status, http::server::reply::bad_request);
+}
 
-// // null printer as input
-// TEST_F(SessionTest, ParseRequest_3) {
-//     session s(io_service);
-//     status = s.parse_request(nullptr, 0);
-//     EXPECT_FALSE(status);
-// }
+// null printer as input
+TEST_F(SessionTest, ParseRequest_3) {
+    session s(io_service, addrmap);
+    rep = s.parse_request(nullptr, 0);
+    EXPECT_EQ(rep.status, http::server::reply::bad_request);
+}
 
-// // empty data not valid request
-// TEST_F(SessionTest, ParseRequest_4) {
-//     session s(io_service);
-//     status = s.parse_request(request_data_1, 0);
-//     EXPECT_FALSE(status);
-// }
+// empty data not valid request
+TEST_F(SessionTest, ParseRequest_4) {
+    session s(io_service, addrmap);
+    rep = s.parse_request(request_data_1, 0);
+    EXPECT_EQ(rep.status, http::server::reply::bad_request);
+}
 
-// // only crlf*2 not valid
-// TEST_F(SessionTest, ParseRequest_5) {
-//     session s(io_service);
-//     status = s.parse_request(request_data_2, 4);
-//     EXPECT_FALSE(status);
-// }
+// only crlf*2 not valid
+TEST_F(SessionTest, ParseRequest_5) {
+    session s(io_service, addrmap);
+    rep = s.parse_request(request_data_2, 4);
+    EXPECT_EQ(rep.status, http::server::reply::bad_request);
+}
 
-// // valid http request
-// TEST_F(SessionTest, ParseRequest_6) {
-//     session s(io_service);
-//     status = s.parse_request(request_data_3, 39);
-//     EXPECT_TRUE(status);
-// }
+// valid http request, uri is "/"
+TEST_F(SessionTest, ParseRequest_6) {
+    session s(io_service, addrmap);
+    rep = s.parse_request(request_data_3, 39);
+    EXPECT_EQ(rep.status, http::server::reply::ok);
+}
 
-// // data length can be longer than actual request
-// TEST_F(SessionTest, ParseRequest_7) {
-//     session s(io_service);
-//     status = s.parse_request(request_data_3, 42);
-//     EXPECT_TRUE(status);
-// }
+// normal invalid http request
+TEST_F(SessionTest, ParseRequest_7) {
+    session s(io_service, addrmap);
+    rep = s.parse_request(request_data_4, 5);
+    EXPECT_EQ(rep.status, http::server::reply::bad_request);
+}
 
-// // data length cannot be shorter
-// TEST_F(SessionTest, ParseRequest_8) {
-//     session s(io_service);
-//     status = s.parse_request(request_data_3, 38);
-//     EXPECT_FALSE(status);
-// }
+// echo request
+TEST_F(SessionTest, EchoRequest) {
+    std::string expected_content(echo_request);
+    session s(io_service, addrmap);
+    rep = s.parse_request(echo_request, 43);
+    EXPECT_EQ(rep.status, http::server::reply::ok);
+    EXPECT_EQ(rep.content, expected_content);
+}
 
-// // normal invalid http request
-// TEST_F(SessionTest, ParseRequest_9) {
-//     session s(io_service);
-//     status = s.parse_request(request_data_4, 5);
-//     EXPECT_FALSE(status);
-// }
+// invalid uri
+TEST_F(SessionTest, InvalidURL) {
+    session s(io_service, addrmap);
+    rep = s.parse_request(invalid_url, 42);
+    EXPECT_EQ(rep.status, http::server::reply::bad_request);
+}
 
-// // null pointer + negative data length
-// TEST_F(SessionTest, AddHeader_1) {
-//     session s(io_service);
-//     rep = s.add_header(nullptr, -1);
-//     EXPECT_EQ(rep.status, http::server::reply::bad_request);
-// }
-
-// // invalid request + out of bound data length
-// TEST_F(SessionTest, AddHeader_2) {
-//     session s(io_service);
-//     rep = s.add_header(request_data_1, 1025);
-//     EXPECT_EQ(rep.status, http::server::reply::bad_request);
-// }
-
-// // test the length of null pointer
-// TEST_F(SessionTest, AddHeader_3) {
-//     session s(io_service);
-//     rep = s.add_header(nullptr, 0);
-//     ASSERT_EQ(rep.status, http::server::reply::bad_request);
-//     EXPECT_EQ(rep.headers[0].value, "0");
-// }
-
-// // test when strlen(data) != data length passed in
-// TEST_F(SessionTest, AddHeader_4) {
-//     session s(io_service);
-//     rep = s.add_header(request_data_4, 3);
-//     ASSERT_EQ(rep.status, http::server::reply::bad_request);
-//     EXPECT_EQ(rep.headers[0].value, "5");
-// }
-
-// // valid request, status should be 200 OK
-// TEST_F(SessionTest, AddHeader_5) {
-//     session s(io_service);
-//     rep = s.add_header(request_data_3, 39);
-//     EXPECT_EQ(rep.status, http::server::reply::ok);
-// }
-
-// // test length of valid request
-// TEST_F(SessionTest, AddHeader_6) {
-//     session s(io_service);
-//     rep = s.add_header(request_data_3, 39);
-//     ASSERT_EQ(rep.status, http::server::reply::ok);
-//     EXPECT_EQ(rep.headers[0].value, "39");
-// }
-
-// // valid test, strlen(data) < data length
-// TEST_F(SessionTest, AddHeader_7) {
-//     session s(io_service);
-//     rep = s.add_header(request_data_3, 43);
-//     ASSERT_EQ(rep.status, http::server::reply::ok);
-//     EXPECT_EQ(rep.headers[0].value, "39");
-// }
-
-// // valid test, strlen(data) > data length (no longer valid)
-// TEST_F(SessionTest, AddHeader_8) {
-//     session s(io_service);
-//     rep = s.add_header(request_data_3, 38);
-//     EXPECT_EQ(rep.status, http::server::reply::bad_request);
-//     EXPECT_EQ(rep.headers[0].value, "39");
-// }
-
-// // test content type
-// TEST_F(SessionTest, AddHeader_9) {
-//     session s(io_service);
-//     rep = s.add_header(request_data_3, 39);
-//     ASSERT_EQ(rep.status, http::server::reply::ok);
-//     EXPECT_EQ(rep.headers[1].value, "text/plain");
-// }
-
-// // valid request, data length out of bound
-// TEST_F(SessionTest, AddHeader_10) {
-//     session s(io_service);
-//     rep = s.add_header(request_data_3, 1025);
-//     EXPECT_EQ(rep.status, http::server::reply::bad_request);
-// }
+// static request
+TEST_F(SessionTest, StaticRequest) {
+    addrmap["/static"] = "dummy";
+    session s(io_service, addrmap);
+    rep = s.parse_request(static_request, 50);
+    EXPECT_EQ(rep.status, http::server::reply::not_found);
+}
 
 // test recycle and delete
 TEST_F(SessionTest, SessionRecycle) {
