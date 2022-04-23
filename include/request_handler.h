@@ -3,6 +3,7 @@
 
 
 #include <cstdlib>
+#include <map>
 #include "http/request.h"
 #include "http/reply.h"
 
@@ -11,7 +12,7 @@ class request_handler
 
     public:
         request_handler(http::server::request& req, bool valid) {req_ = req; valid_ = valid;}
-        virtual http::server::reply handle_request(char* in_data, std::string dir) = 0;
+        virtual http::server::reply handle_request(char* in_data, std::string dir, std::string suffix) = 0;
 
         http::server::request req_;
         bool valid_;

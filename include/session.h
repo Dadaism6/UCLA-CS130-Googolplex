@@ -2,6 +2,7 @@
 #define SESSION_H
 
 #include <cstdlib>
+#include <map>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/beast/http.hpp>
@@ -15,7 +16,7 @@ using boost::asio::ip::tcp;
 class session
 {
 	public:
-		session(boost::asio::io_service& io_service, std::string basepath);
+		session(boost::asio::io_service& io_service, std::map<std::string, std::string> addrmap);
 
 		tcp::socket& socket();
 
@@ -37,7 +38,7 @@ class session
 
 		http::server::request_parser request_parser_;
 		request_handler* request_handler_;
-		std::string basepath;
+		std::map<std::string, std::string>  addrmap;
 };
 
 #endif  // SESSION_H

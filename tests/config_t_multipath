@@ -1,0 +1,13 @@
+#should be true
+#only contains port number and multiple static path
+listen   80;
+root /basedata;
+location /static {
+    root /data;
+}
+location /static1 {
+    root /data1;
+}
+location /static2 {
+    root /usr/src/projects/googolplex/tests;
+}

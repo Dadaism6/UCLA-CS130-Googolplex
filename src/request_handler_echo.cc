@@ -5,7 +5,7 @@
 
 #include "request_handler_echo.h"
 #include "log.h"
-http::server::reply request_handler_echo::handle_request(char* in_data, std::string dir)
+http::server::reply request_handler_echo::handle_request(char* in_data, std::string dir, std::string suffix)
 {
 	INFO << "Using echo request handler\n";
 	http::server::reply rep;

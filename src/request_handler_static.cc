@@ -8,12 +8,12 @@
 
 #include "request_handler_static.h"
 #include "log.h"
-http::server::reply request_handler_static::handle_request(char* in_data, std::string dir)
+http::server::reply request_handler_static::handle_request(char* in_data, std::string dir, std::string inputsuffix)
 {
     INFO << "Using static request handler\n";
 	http::server::reply rep;
 	
-    std::string suffix = "/static/";
+    std::string suffix = "/" + inputsuffix + "/";
     size_t pos = req_.uri.find(suffix);
     if (pos != std::string::npos && pos == 0 && req_.uri.length() > suffix.length()) {
         std::string path = dir + "/" + req_.uri.substr(suffix.length());

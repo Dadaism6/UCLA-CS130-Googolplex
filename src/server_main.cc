@@ -12,7 +12,7 @@
 #include <csignal>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
-
+#include <map>
 #include "server.h"
 #include "session.h"
 #include "config_parser.h"
@@ -44,14 +44,14 @@ int main(int argc, char* argv[])
 			return 1;
 		}
 		int port = -1;
-		std::string basepath = "";
+		std::map<std::string, std::string>  addrmap;
 		INFO << "Preparing to parse the config file\n";
 		NginxConfigParser config_parser;
 		NginxConfig config;
-		config_parser.Parse(argv[1], &config, &port, &basepath);
+		config_parser.Parse(argv[1], &config, &port, &addrmap);
 		boost::asio::io_service io_service;
 		INFO << "Finish parsing, prepare to start the server\n";
-		server s(io_service,port, basepath);
+		server s(io_service,port, addrmap);
 		io_service.run();
 	}
 	catch (std::exception& e)

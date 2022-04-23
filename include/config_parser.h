@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-
+#include <map>
 class NginxConfig;
 
 // The parsed representation of a single config statement.
@@ -30,8 +30,8 @@ class NginxConfigParser {
         // Take a opened config file or file name (respectively) and store the
         // parsed config in the provided NginxConfig out-param.  Returns true
         // iff the input config file is valid.
-        bool Parse(std::istream* config_file, NginxConfig* config, int* port, std::string* basepath);
-        bool Parse(const char* file_name, NginxConfig* config, int* port, std::string* basepath);
+        bool Parse(std::istream* config_file, NginxConfig* config, int* port, std::map<std::string, std::string> * addrmap);
+        bool Parse(const char* file_name, NginxConfig* config, int* port, std::map<std::string, std::string> * addrmap);
 
     private:
         enum TokenType {

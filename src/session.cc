@@ -14,7 +14,7 @@
 using boost::asio::ip::tcp;
 
 
-session::session(boost::asio::io_service& io_service, std::string basepath) : socket_(io_service), basepath(basepath)
+session::session(boost::asio::io_service& io_service, std::map<std::string, std::string> addrmap) : socket_(io_service), addrmap(addrmap)
 {
 	memset(in_data_, 0, max_length);
 }
@@ -76,6 +76,8 @@ http::server::reply session::parse_request(char* request_data, int current_data_
 	http::server::request request;
 	
 	bool static_server = false;
+	std::string dummy_dir = ""; // should be configurable
+	std::string suffix = "";
 	if (current_data_len < 0 || current_data_len > max_length || request_data == nullptr) 
 	{
 		valid = false;
@@ -92,19 +94,26 @@ http::server::reply session::parse_request(char* request_data, int current_data_
 			if (pos == std::string::npos) 
 				pos = actual_uri.length();
 			std::string mode = actual_uri.substr(0, pos);
-			if (mode == "static") {
-				request_handler_ = new request_handler_static(request, valid);
-				static_server = true;
-			} else if (mode != "echo") {
-				valid = false;
+			if(mode == "echo"){
+				valid = true;
+			}
+			else{
+				std::string slash_mode = "/" + mode;
+				if (addrmap.find(slash_mode) != addrmap.end()) {
+					dummy_dir = addrmap.at(slash_mode);
+					suffix = mode;
+					request_handler_ = new request_handler_static(request, valid);
+					static_server = true;
+    			}
+				else{
+					valid = false;
+				}
 			}
 		}
 	}
 	if ( !static_server)
 		request_handler_ = new request_handler_echo(request, valid);
-
-	std::string dummy_dir = basepath; // should be configurable
-	http::server::reply rep = request_handler_ -> handle_request(request_data, dummy_dir);
+	http::server::reply rep = request_handler_ -> handle_request(request_data, dummy_dir, suffix);
 	delete request_handler_;
 	request_handler_ = NULL;
 	return rep;

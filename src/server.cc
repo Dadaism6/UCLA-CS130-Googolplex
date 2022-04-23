@@ -8,18 +8,18 @@
 using boost::asio::ip::tcp;
 
 
-server::server(boost::asio::io_service& io_service, short port, std::string basepath)
+server::server(boost::asio::io_service& io_service, short port, std::map<std::string, std::string>  addrmap)
 : io_service_(io_service),
     acceptor_(io_service, tcp::endpoint(tcp::v4(), port)),
-    basepath(basepath)
+    addrmap(addrmap)
 {
     start_accept();
-    INFO << "Start the server, port:" << port << " and basepath: " << basepath << "\n";
+    INFO << "Start the server, port:" << port << "\n";
 }
 
 void server::start_accept()
 {
-    session* new_session = new session(io_service_, basepath);
+    session* new_session = new session(io_service_, addrmap);
     acceptor_.async_accept(new_session->socket(),
         boost::bind(&server::handle_accept, this, new_session,
             boost::asio::placeholders::error));
