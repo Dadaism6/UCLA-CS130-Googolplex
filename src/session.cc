@@ -84,8 +84,8 @@ http::server::reply session::parse_request(char* request_data, int current_data_
 	{
 		valid = false;
 	} else {
-		std::tie(result, dummy) = request_parser_.parse(request, request_data, request_data + current_data_len);
-
+		http::server::request_parser request_parser;
+		std::tie(result, dummy) = request_parser.parse(request, request_data, request_data + current_data_len);
 		if (request.uri == "/")
 			valid = true;	
 		else if (result == http::server::request_parser::good && request.uri[0] == '/') {

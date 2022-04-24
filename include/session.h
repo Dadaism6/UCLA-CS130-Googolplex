@@ -37,7 +37,6 @@ class session
 		enum { max_length = 1024,  content_length_field = 0, content_type_field = 1};
 		char in_data_[max_length];
 
-		http::server::request_parser request_parser_;
 		request_handler* request_handler_;
 		std::map<std::string, std::string>  addrmap;
 };
