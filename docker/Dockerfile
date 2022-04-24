@@ -18,7 +18,7 @@ FROM ubuntu:focal as deploy
 
 # Copy server output binary to "."
 COPY --from=builder /usr/src/project/build/bin/webserver .
-COPY --from=builder /usr/src/project/tests/config_t_port .
+COPY --from=builder /usr/src/project/config/default.config .
 
 # Expose some port(s)
 EXPOSE 80
@@ -29,4 +29,4 @@ ENTRYPOINT ["./webserver"]
 
 # Use CMD to specify arguments to ENTRYPOINT
 # Update with real server args
-CMD ["config_t_port"]
+CMD ["default.config"]

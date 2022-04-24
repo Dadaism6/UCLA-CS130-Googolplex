@@ -336,6 +336,9 @@ bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config, int* p
 		return false;
 	}
 	const bool return_value = Parse(dynamic_cast<std::istream*>(&config_file), config, port, addrmap);
+	if(addrmap->size() == 0){
+		WARNING << "Static address binding is empty! Please check the config file!\n";
+	}
 	config_file.close();
 	return return_value;
 }

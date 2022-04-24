@@ -108,6 +108,7 @@ http::server::reply session::parse_request(char* request_data, int current_data_
 					static_server = true;
     			}
 				else{
+					WARNING << "Cannot find the given address: " << mode << " from the config file.\n";
 					valid = false;
 				}
 			}
