@@ -19,6 +19,7 @@ FROM ubuntu:focal as deploy
 # Copy server output binary to "."
 COPY --from=builder /usr/src/project/build/bin/webserver .
 COPY --from=builder /usr/src/project/config/default.config .
+COPY --from=builder /usr/src/project/tests .
 
 # Expose some port(s)
 EXPOSE 80
