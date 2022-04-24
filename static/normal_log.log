@@ -1,0 +1,6 @@
+<info> Server Startup
+<info> Preparing to parse the config file
+<warning> Static address binding is empty! Please check the config file!
+<info> Finish parsing, prepare to start the server
+<info> Start the server, port:80
+<info> Interrupt signal "Terminated" received. Shutting Down server. 

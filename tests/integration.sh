@@ -15,7 +15,7 @@ sleep 0.5
 curl -s -I localhost:80 > ./tmp.txt
 sleep 0.5
 echo "Compare the result"
-if cmp -s ../tests/expected.txt ./tmp.txt ; then
+if cmp -s ../static/expected.txt ./tmp.txt ; then
     rm ./tmp.txt
     echo -e "Test 1 pass"
 else
@@ -32,7 +32,7 @@ sleep 0.5
 cat ./bad_request.txt | nc -C localhost 80 -q 0 > ./tmp2.txt
 sleep 0.5
 echo "Compare the result"
-if cmp -s ../tests/expected_bad.txt ./tmp2.txt ; then
+if cmp -s ../static/expected_bad.txt ./tmp2.txt ; then
     rm ./tmp2.txt
     echo -e "Test 2 pass"
 else
@@ -45,7 +45,7 @@ fi
 echo "Test3: logging"
 ../build/bin/webserver &> /dev/null &
 sleep 0.1
-if sed 's/\[.*\] //g' ../log/SERVER_LOG_0.log | cmp -s ../tests/no_arg_log.log ; then
+if sed 's/\[.*\] //g' ../log/SERVER_LOG_0.log | cmp -s ../static/no_arg_log.log ; then
     echo -e "Test 3.1 pass"
 else
     echo -e "Test 3.1 fail - logging incorrect"
@@ -54,7 +54,7 @@ fi
 
 timeout 0.5s ../build/bin/webserver ./config_t_port &> /dev/null &
 sleep 0.5
-if sed 's/\[.*\] //g' ../log/SERVER_LOG_0.log | cmp -s ../tests/normal_log.log ; then
+if sed 's/\[.*\] //g' ../log/SERVER_LOG_0.log | cmp -s ../static/normal_log.log ; then
     echo -e "Test 3.2 pass"
 else
     echo -e "Test 3.2 fail - logging incorrect"
@@ -68,7 +68,7 @@ sleep 0.5
 curl localhost:80/static2/minion.jpg --output ./tmp.jpg
 sleep 0.5
 echo "Compare the result"
-if cmp -s ./minion.jpg ./tmp.jpg ; then
+if cmp -s ../static/minion.jpg ./tmp.jpg ; then
     rm ./tmp.jpg
     echo -e "Test 4.1 (image) pass"
 else
@@ -81,7 +81,7 @@ sleep 0.5
 curl localhost:80/static2/expected.txt > ./tmp.txt
 sleep 0.5
 echo "Compare the result"
-if cmp -s ./expected.txt ./tmp.txt ; then
+if cmp -s ../static/expected.txt ./tmp.txt ; then
     rm ./tmp.txt
     echo -e "Test 4.2 (text file) pass"
 else
@@ -94,7 +94,7 @@ sleep 0.5
 curl localhost:80/static2/minion.jpg.zip --output ./tmp.zip
 sleep 0.5
 echo "Compare the result"
-if cmp -s ./minion.jpg.zip ./tmp.zip ; then
+if cmp -s ../static/minion.jpg.zip ./tmp.zip ; then
     rm ./tmp.zip
     echo -e "Test 4.3 (zip file) pass"
 else
@@ -107,7 +107,7 @@ sleep 0.5
 curl localhost:80/static2/index.html > ./tmp.html
 sleep 0.5
 echo "Compare the result"
-if cmp -s ./index.html ./tmp.html ; then
+if cmp -s ../static/index.html ./tmp.html ; then
     rm ./tmp.html
     echo -e "Test 4.4 (html page) pass"
 else
