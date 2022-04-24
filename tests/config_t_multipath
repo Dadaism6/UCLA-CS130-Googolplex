@@ -9,5 +9,5 @@ location /static1 {
     root /data1;
 }
 location /static2 {
-    root /usr/src/projects/googolplex/tests;
+    root ../tests;
 }
