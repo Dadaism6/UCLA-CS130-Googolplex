@@ -95,12 +95,20 @@ http::server::reply session::parse_request(char* request_data, int current_data_
 			size_t pos = actual_uri.find(delimiter);
 			if (pos == std::string::npos) 
 				pos = actual_uri.length();
+			std::string echopath = "/echo";
 			std::string mode = actual_uri.substr(0, pos);
-			if(mode == "echo"){
+			if (addrmap.find("") != addrmap.end()){
+				echopath = addrmap.at("");
+				INFO << "Bind echo server to: " << echopath << "\n";
+			}
+			else{
+				WARNING << "Cannot find specified echo path in the config file, use default /echo";
+			}
+			std::string slash_mode = "/" + mode;
+			if(slash_mode == echopath){
 				valid = true;
 			}
 			else{
-				std::string slash_mode = "/" + mode;
 				if (addrmap.find(slash_mode) != addrmap.end()) {
 					dummy_dir = addrmap.at(slash_mode);
 					suffix = mode;

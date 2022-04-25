@@ -306,7 +306,21 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, in
 			// Error.
 			break;
 		}
-	  	config_stack.pop();
+		config_stack.pop();
+		if (last_token_type == TOKEN_TYPE_START_BLOCK){
+			std::vector<std::string> previoustokens = config_stack.top()->statements_.back().get()->tokens_;
+			if(previoustokens.rbegin()[1].compare("location") == 0){
+				std::string echopath = previoustokens.rbegin()[0];
+				if(addrmap->count("") > 0){
+					WARNING << "Location: "<< "" << "(special empty string for echo) has already be mapped to a path, ignored\n"; 
+				}
+				else{
+					addrmap->insert(std::pair<std::string,std::string>("",echopath));
+					INFO << "Map location: " << ""  << "(special empty string for echo) with root: " << echopath << "\n";
+				}
+
+			}
+		}
 	} else if (token_type == TOKEN_TYPE_EOF) {
 	  	if (last_token_type != TOKEN_TYPE_STATEMENT_END &&
 		  	last_token_type != TOKEN_TYPE_END_BLOCK) {
