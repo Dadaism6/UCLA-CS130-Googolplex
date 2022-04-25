@@ -3,11 +3,11 @@
 listen   80;
 root /basedata;
 location /static {
-    root /data;
-}
-location /static1 {
     root /data1;
 }
+location /static1 {
+    root ../static/static1;
+}
 location /static2 {
-    root ../tests;
+    root /data2;
 }
