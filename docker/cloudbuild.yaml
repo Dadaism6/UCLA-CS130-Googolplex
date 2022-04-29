@@ -27,7 +27,7 @@ steps:
   args: [
     'build',
     '-f', 'docker/coverage.Dockerfile',
-    '-t', 'gcr.io/$PROJECT_ID/googolplex:latest',
+    '-t', 'gcr.io/$PROJECT_ID/googolplex:coverage',
     '.'
 ]
 images: ['gcr.io/$PROJECT_ID/googolplex:base', 'gcr.io/$PROJECT_ID/googolplex:latest']

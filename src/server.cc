@@ -14,7 +14,7 @@ server::server(boost::asio::io_service& io_service, short port, std::map<std::st
     addrmap(addrmap)
 {
     start_accept();
-    INFO << "Start the server, port:" << port << "\n";
+    INFO << "Start the server on port " << port << "\n";
 }
 
 void server::start_accept()

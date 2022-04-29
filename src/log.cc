@@ -13,9 +13,12 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(global_logger, logger_t)
 
     logging::add_file_log
     (
-        logging::keywords::file_name = "../log/SERVER_LOG_%N.log",                                        /*< file name pattern >*/
-        logging::keywords::rotation_size = 10 * 1024 * 1024,                                   /*< rotate files every 10 MiB... >*/
-        logging::keywords::time_based_rotation = logging::sinks::file::rotation_at_time_point(0, 0, 0), /*< ...or at midnight >*/
+        // file name pattern
+        logging::keywords::file_name = "../log/SERVER_LOG_%N.log",      
+        // rotate files every 10 MiB     
+        logging::keywords::rotation_size = 10 * 1024 * 1024,  
+        // rotate or at midnight                             
+        logging::keywords::time_based_rotation = logging::sinks::file::rotation_at_time_point(0, 0, 0), 
 		logging::keywords::auto_flush = true,
 		logging::keywords::format = format
     );
