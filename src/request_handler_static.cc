@@ -8,15 +8,18 @@
 
 #include "request_handler_static.h"
 #include "log.h"
+#include "content_type.h"
+
 http::server::reply request_handler_static::handle_request(char* in_data, std::string dir, std::string inputsuffix, std::string client_ip)
 {
     INFO << "Using static request handler\n";
 	http::server::reply rep;
-	
+	http::server::request req = get_request();
+
     std::string suffix = "/" + inputsuffix + "/";
-    size_t pos = req_.uri.find(suffix);
-    if (pos != std::string::npos && pos == 0 && req_.uri.length() > suffix.length()) {
-        std::string path = dir + "/" + req_.uri.substr(suffix.length());
+    size_t pos = req.uri.find(suffix);
+    if (pos != std::string::npos && pos == 0 && req.uri.length() > suffix.length()) {
+        std::string path = dir + "/" + req.uri.substr(suffix.length());
         INFO << client_ip << ": Static request: trying to find: " << path << "\n";
         std::ifstream file(path, std::ios::binary);
         if (file.good()) {
@@ -46,25 +49,11 @@ http::server::reply request_handler_static::handle_request(char* in_data, std::s
 std::string request_handler_static::set_content_type(std::string file_path, http::server::reply& rep)
 {
     std::string extension = "";
-    std::string content_type = "";
     boost::filesystem::path p(file_path);
     if (p.has_extension()) {
         extension = p.extension().string();
-        if (extension == ".html" || extension == ".htm") 
-            content_type = "text/html";
-        else if (extension == ".txt")
-            content_type = "text/plain";
-        else if (extension == ".jpg" || extension == ".jpeg")
-            content_type = "image/jpeg";
-        else if (extension == ".png")
-            content_type = "image/png";
-        else if (extension == ".gif")
-            content_type = "image/gif";
-        else if (extension == ".zip")
-            content_type = "application/zip";
-    } else {
-        content_type = "text/plain";
     }
-    rep.headers[content_type_field].value = content_type;
+    content_type c_type = content_type::get_content_type(extension);
+    rep.headers[content_type_field].value = c_type.content_type_str;
     return extension;
 }

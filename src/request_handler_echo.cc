@@ -9,7 +9,7 @@ http::server::reply request_handler_echo::handle_request(char* in_data, std::str
 {
 	INFO << client_ip << ": Using echo request handler\n";
 	http::server::reply rep;
-	if (valid_) 
+	if (get_status()) 
 	{
         rep = http::server::reply::stock_reply(http::server::reply::ok);
 	}
