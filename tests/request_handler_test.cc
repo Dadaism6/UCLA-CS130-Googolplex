@@ -10,6 +10,12 @@
 
 class RequestHandlerTest:public::testing::Test
 {
+  public:
+    RequestHandlerTest() {
+        request_static.suffix = static_;
+        request_base_static.suffix = static_;
+        request_base_static.dir = base_dir;
+    }
   protected:
     void write_to_file(std::string path);
     request_handler* req_handler;
@@ -22,6 +28,10 @@ class RequestHandlerTest:public::testing::Test
     std::string static_ = "static";
     std::string file_name_no_extension = "test";
     std::string file_name;
+    Request request_default;
+    Request request_with_data;
+    Request request_static;
+    Request request_base_static;
 };
 
 void RequestHandlerTest::write_to_file(std::string path)
@@ -34,7 +44,7 @@ void RequestHandlerTest::write_to_file(std::string path)
 TEST_F(RequestHandlerTest, InValidEchoTest)
 {
     req_handler = new request_handler_echo(req, not_valid);
-    rep = req_handler -> handle_request(NULL, "", "", "");
+    rep = req_handler -> handle_request(request_default);
     EXPECT_EQ(rep.status, http::server::reply::bad_request);
     delete req_handler;
 }
@@ -42,7 +52,7 @@ TEST_F(RequestHandlerTest, InValidEchoTest)
 TEST_F(RequestHandlerTest, ValidEmptyEchoTest)
 {
     req_handler = new request_handler_echo(req, valid);
-    rep = req_handler -> handle_request(NULL, "", "", "");
+    rep = req_handler -> handle_request(request_default);
     EXPECT_EQ(rep.status, http::server::reply::ok);
     EXPECT_EQ(rep.headers[content_length_field].value, "0");
     delete req_handler;
@@ -52,7 +62,8 @@ TEST_F(RequestHandlerTest, ValidRequestEchoTest)
 {
     char request_data[40] = "GET / HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
     req_handler = new request_handler_echo(req, valid);
-    rep = req_handler -> handle_request(request_data, "", "", "");
+    request_with_data.in_data = request_data;
+    rep = req_handler -> handle_request(request_with_data);
     EXPECT_EQ(rep.status, http::server::reply::ok);
 
     std::string string_req_data(request_data);
@@ -64,7 +75,7 @@ TEST_F(RequestHandlerTest, inValidStaticTest_1)
 {
     req.uri = "/statIc";
     req_handler = new request_handler_static(req, valid);
-    rep = req_handler -> handle_request(NULL, "", static_, "");
+    rep = req_handler -> handle_request(request_static);
     EXPECT_EQ(rep.status, http::server::reply::not_found);
     delete req_handler;
 }
@@ -73,7 +84,7 @@ TEST_F(RequestHandlerTest, inValidStaticTest_2)
 {
     req.uri = "/hello/" + static_ + "/";
     req_handler = new request_handler_static(req, valid);
-    rep = req_handler -> handle_request(NULL, "", static_, "");
+    rep = req_handler -> handle_request(request_static);
     EXPECT_EQ(rep.status, http::server::reply::not_found);
     delete req_handler;
 }
@@ -82,7 +93,7 @@ TEST_F(RequestHandlerTest, inValidStaticTest_3)
 {
     req.uri = "/" + static_ + "/";
     req_handler = new request_handler_static(req, valid);
-    rep = req_handler -> handle_request(NULL, "", static_, "");
+    rep = req_handler -> handle_request(request_static);
     EXPECT_EQ(rep.status, http::server::reply::not_found);
     delete req_handler;
 }
@@ -91,7 +102,7 @@ TEST_F(RequestHandlerTest, FileNotFoundStaticTest)
 {
     req.uri = "/" + static_ + "/not_a_file";
     req_handler = new request_handler_static(req, valid);
-    rep = req_handler -> handle_request(NULL, "", static_, "");
+    rep = req_handler -> handle_request(request_static);
     EXPECT_EQ(rep.status, http::server::reply::not_found);
     delete req_handler;
 }
@@ -102,7 +113,7 @@ TEST_F(RequestHandlerTest, ContentTypeStaticTest_1)
     req.uri = "/" + static_ + "/" + file_name;
     write_to_file(file_name);
     req_handler = new request_handler_static(req, valid);
-    rep = req_handler -> handle_request(NULL, base_dir, static_, "");
+    rep = req_handler -> handle_request(request_base_static);
     EXPECT_EQ(rep.status, http::server::reply::ok);
     EXPECT_EQ(rep.content, "test");
     EXPECT_EQ(rep.headers[content_type_field].value, "text/plain");
@@ -116,7 +127,7 @@ TEST_F(RequestHandlerTest, ContentTypeStaticTest_2)
     req.uri = "/" + static_ + "/" + file_name;
     write_to_file(file_name);
     req_handler = new request_handler_static(req, valid);
-    rep = req_handler -> handle_request(NULL, base_dir, static_, "");
+    rep = req_handler -> handle_request(request_base_static);
     EXPECT_EQ(rep.status, http::server::reply::ok);
     EXPECT_EQ(rep.headers[content_type_field].value, "text/html");
     std::remove(file_name.c_str());
@@ -129,7 +140,7 @@ TEST_F(RequestHandlerTest, ContentTypeStaticTest_3)
     req.uri = "/" + static_ + "/" + file_name;
     write_to_file(file_name);
     req_handler = new request_handler_static(req, valid);
-    rep = req_handler -> handle_request(NULL, base_dir, static_, "");
+    rep = req_handler -> handle_request(request_base_static);
     EXPECT_EQ(rep.status, http::server::reply::ok);
     EXPECT_EQ(rep.headers[content_type_field].value, "text/html");
     std::remove(file_name.c_str());
@@ -142,7 +153,7 @@ TEST_F(RequestHandlerTest, ContentTypeStaticTest_4)
     req.uri = "/" + static_ + "/" + file_name;
     write_to_file(file_name);
     req_handler = new request_handler_static(req, valid);
-    rep = req_handler -> handle_request(NULL, base_dir, static_, "");
+    rep = req_handler -> handle_request(request_base_static);
     EXPECT_EQ(rep.status, http::server::reply::ok);
     EXPECT_EQ(rep.headers[content_type_field].value, "image/jpeg");
     std::remove(file_name.c_str());
@@ -155,7 +166,7 @@ TEST_F(RequestHandlerTest, ContentTypeStaticTest_5)
     req.uri = "/" + static_ + "/" + file_name;
     write_to_file(file_name);
     req_handler = new request_handler_static(req, valid);
-    rep = req_handler -> handle_request(NULL, base_dir, static_, "");
+    rep = req_handler -> handle_request(request_base_static);
     EXPECT_EQ(rep.status, http::server::reply::ok);
     EXPECT_EQ(rep.headers[content_type_field].value, "image/jpeg");
     std::remove(file_name.c_str());
@@ -168,7 +179,7 @@ TEST_F(RequestHandlerTest, ContentTypeStaticTest_6)
     req.uri = "/" + static_ + "/" + file_name;
     write_to_file(file_name);
     req_handler = new request_handler_static(req, valid);
-    rep = req_handler -> handle_request(NULL, base_dir, static_, "");
+    rep = req_handler -> handle_request(request_base_static);
     EXPECT_EQ(rep.status, http::server::reply::ok);
     EXPECT_EQ(rep.headers[content_type_field].value, "image/png");
     std::remove(file_name.c_str());
@@ -181,7 +192,7 @@ TEST_F(RequestHandlerTest, ContentTypeStaticTest_7)
     req.uri = "/" + static_ + "/" + file_name;
     write_to_file(file_name);
     req_handler = new request_handler_static(req, valid);
-    rep = req_handler -> handle_request(NULL, base_dir, static_, "");
+    rep = req_handler -> handle_request(request_base_static);
     EXPECT_EQ(rep.status, http::server::reply::ok);
     EXPECT_EQ(rep.headers[content_type_field].value, "image/gif");
     std::remove(file_name.c_str());
@@ -194,7 +205,7 @@ TEST_F(RequestHandlerTest, ContentTypeStaticTest_8)
     req.uri = "/" + static_ + "/" + file_name;
     write_to_file(file_name);
     req_handler = new request_handler_static(req, valid);
-    rep = req_handler -> handle_request(NULL, base_dir, static_, "");
+    rep = req_handler -> handle_request(request_base_static);
     EXPECT_EQ(rep.status, http::server::reply::ok);
     EXPECT_EQ(rep.headers[content_type_field].value, "application/zip");
     std::remove(file_name.c_str());
@@ -207,7 +218,7 @@ TEST_F(RequestHandlerTest, ContentTypeStaticTest_9)
     req.uri = "/" + static_ + "/" + file_name;
     write_to_file(file_name);
     req_handler = new request_handler_static(req, valid);
-    rep = req_handler -> handle_request(NULL, base_dir, static_, "");
+    rep = req_handler -> handle_request(request_base_static);
     EXPECT_EQ(rep.status, http::server::reply::ok);
     EXPECT_EQ(rep.headers[content_type_field].value, "text/plain");
     std::remove(file_name.c_str());

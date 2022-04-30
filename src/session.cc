@@ -124,7 +124,12 @@ http::server::reply session::parse_request(char* request_data, int current_data_
 	}
 	if ( !static_server)
 		request_handler_ = new request_handler_echo(request, valid);
-	http::server::reply rep = request_handler_ -> handle_request(request_data, dummy_dir, suffix, client_ip_);
+	Request raw_request;
+    raw_request.in_data = request_data;
+    raw_request.dir = dummy_dir;
+    raw_request.suffix = suffix;
+    raw_request.client_ip = client_ip_;
+	http::server::reply rep = request_handler_ -> handle_request(raw_request);
 	delete request_handler_;
 	request_handler_ = NULL;
 	return rep;

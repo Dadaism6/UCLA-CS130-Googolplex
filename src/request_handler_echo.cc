@@ -5,8 +5,10 @@
 
 #include "request_handler_echo.h"
 #include "log.h"
-http::server::reply request_handler_echo::handle_request(char* in_data, std::string dir, std::string suffix, std::string client_ip)
+http::server::reply request_handler_echo::handle_request(Request request)
 {
+	std::string client_ip = request.client_ip;
+	char* in_data = request.in_data;
 	INFO << client_ip << ": Using echo request handler\n";
 	http::server::reply rep;
 	if (get_status()) 

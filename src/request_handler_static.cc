@@ -10,8 +10,12 @@
 #include "log.h"
 #include "content_type.h"
 
-http::server::reply request_handler_static::handle_request(char* in_data, std::string dir, std::string inputsuffix, std::string client_ip)
+http::server::reply request_handler_static::handle_request(Request request)
 {
+	char* in_data = request.in_data;
+    std::string dir = request.dir;
+    std::string inputsuffix = request.suffix;
+    std::string client_ip = request.client_ip;
     INFO << "Using static request handler\n";
 	http::server::reply rep;
 	http::server::request req = get_request();

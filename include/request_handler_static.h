@@ -13,7 +13,7 @@ class request_handler_static : public request_handler
 
     public:
         using request_handler::request_handler;
-        http::server::reply handle_request(char* in_data, std::string dir, std::string suffix, std::string client_ip);
+        http::server::reply handle_request(Request request);
     
     private:
         std::string set_content_type(std::string file_path, http::server::reply& rep);
