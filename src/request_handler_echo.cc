@@ -11,6 +11,8 @@ http::server::reply request_handler_echo::handle_request(Request request)
 	char* in_data = request.in_data;
 	INFO << client_ip << ": Using echo request handler\n";
 	http::server::reply rep;
+
+	// first construct a reply based on the validity of http response
 	if (get_status()) 
 	{
         rep = http::server::reply::stock_reply(http::server::reply::ok);
@@ -20,6 +22,8 @@ http::server::reply request_handler_echo::handle_request(Request request)
         rep = http::server::reply::stock_reply(http::server::reply::bad_request);
 		WARNING << client_ip << ": Bad echo request\n"; 
 	}
+
+	// set the content of the response according to in_data char array
 	if (in_data == nullptr) {
 		rep.content = "";
 		rep.headers[content_length_field].value = "0";

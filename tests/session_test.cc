@@ -71,49 +71,49 @@ TEST_F(SessionTest, SessionConstruction) {
 // negative data length
 TEST_F(SessionTest, ParseRequest_1) {
     session s(io_service, addrmap);
-    rep = s.parse_request(request_data_1, -1);
+    rep = s.get_reply(request_data_1, -1);
     EXPECT_EQ(rep.status, http::server::reply::bad_request);
 }
 
 // out of bound data length
 TEST_F(SessionTest, ParseRequest_2) {
     session s(io_service, addrmap);
-    rep = s.parse_request(request_data_2, 1025);
+    rep = s.get_reply(request_data_2, 1025);
     EXPECT_EQ(rep.status, http::server::reply::bad_request);
 }
 
 // null printer as input
 TEST_F(SessionTest, ParseRequest_3) {
     session s(io_service, addrmap);
-    rep = s.parse_request(nullptr, 0);
+    rep = s.get_reply(nullptr, 0);
     EXPECT_EQ(rep.status, http::server::reply::bad_request);
 }
 
 // empty data not valid request
 TEST_F(SessionTest, ParseRequest_4) {
     session s(io_service, addrmap);
-    rep = s.parse_request(request_data_1, 0);
+    rep = s.get_reply(request_data_1, 0);
     EXPECT_EQ(rep.status, http::server::reply::bad_request);
 }
 
 // only crlf*2 not valid
 TEST_F(SessionTest, ParseRequest_5) {
     session s(io_service, addrmap);
-    rep = s.parse_request(request_data_2, 4);
+    rep = s.get_reply(request_data_2, 4);
     EXPECT_EQ(rep.status, http::server::reply::bad_request);
 }
 
 // valid http request, uri is "/"
 TEST_F(SessionTest, ParseRequest_6) {
     session s(io_service, addrmap);
-    rep = s.parse_request(request_data_3, 39);
+    rep = s.get_reply(request_data_3, 39);
     EXPECT_EQ(rep.status, http::server::reply::ok);
 }
 
 // normal invalid http request
 TEST_F(SessionTest, ParseRequest_7) {
     session s(io_service, addrmap);
-    rep = s.parse_request(request_data_4, 5);
+    rep = s.get_reply(request_data_4, 5);
     EXPECT_EQ(rep.status, http::server::reply::bad_request);
 }
 
@@ -121,7 +121,7 @@ TEST_F(SessionTest, ParseRequest_7) {
 TEST_F(SessionTest, EchoRequest) {
     std::string expected_content(echo_request);
     session s(io_service, addrmap);
-    rep = s.parse_request(echo_request, 43);
+    rep = s.get_reply(echo_request, 43);
     EXPECT_EQ(rep.status, http::server::reply::ok);
     EXPECT_EQ(rep.content, expected_content);
 }
@@ -129,7 +129,7 @@ TEST_F(SessionTest, EchoRequest) {
 // invalid uri
 TEST_F(SessionTest, InvalidURL) {
     session s(io_service, addrmap);
-    rep = s.parse_request(invalid_url, 42);
+    rep = s.get_reply(invalid_url, 42);
     EXPECT_EQ(rep.status, http::server::reply::bad_request);
 }
 
@@ -137,7 +137,7 @@ TEST_F(SessionTest, InvalidURL) {
 TEST_F(SessionTest, StaticRequest) {
     addrmap["/static"] = "dummy";
     session s(io_service, addrmap);
-    rep = s.parse_request(static_request, 50);
+    rep = s.get_reply(static_request, 50);
     EXPECT_EQ(rep.status, http::server::reply::not_found);
 }
 

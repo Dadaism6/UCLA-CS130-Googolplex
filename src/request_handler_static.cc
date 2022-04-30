@@ -22,10 +22,13 @@ http::server::reply request_handler_static::handle_request(Request request)
 
     std::string suffix = "/" + inputsuffix + "/";
     size_t pos = req.uri.find(suffix);
+    /* if found the given location, and the url starts with the given location,
+     and the string of location is smaller than the url, this is a good path */
     if (pos != std::string::npos && pos == 0 && req.uri.length() > suffix.length()) {
         std::string path = dir + "/" + req.uri.substr(suffix.length());
         INFO << client_ip << ": Static request: trying to find: " << path << "\n";
         std::ifstream file(path, std::ios::binary);
+        // read from file
         if (file.good()) {
             INFO << client_ip << ": Reading data...\n";
             file.seekg(0, std::ios::end);
@@ -33,6 +36,8 @@ http::server::reply request_handler_static::handle_request(Request request)
             content.resize(file.tellg());
             file.seekg(0, std::ios::beg);
             file.read(&content[0], content.size());
+
+            // if found the file, set reply
             rep = http::server::reply::stock_reply(http::server::reply::ok);
             rep.content = content;
             rep.headers[content_length_field].value = std::to_string(content.length());
@@ -45,7 +50,7 @@ http::server::reply request_handler_static::handle_request(Request request)
         }
         file.close();
     }    
-
+    // cannot find the file
     rep = http::server::reply::stock_reply(http::server::reply::not_found);
 	return rep;
 }
@@ -57,6 +62,7 @@ std::string request_handler_static::set_content_type(std::string file_path, http
     if (p.has_extension()) {
         extension = p.extension().string();
     }
+    // if extension is empty string, will set content type to text/plain as default
     content_type c_type = content_type::get_content_type(extension);
     rep.headers[content_type_field].value = c_type.content_type_str;
     return extension;
