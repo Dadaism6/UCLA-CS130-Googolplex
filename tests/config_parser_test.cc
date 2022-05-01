@@ -130,11 +130,12 @@ TEST_F(NginxConfigParserTest, UnmatchBracketConfig) {
 }
 
 TEST_F(NginxConfigParserTest, ToStringTest) {
-  status = parser.Parse("config_t_port", &out_config, &port, &addrmap);
+  status = parser.Parse("config_t_subdir_multi", &out_config, &port, &addrmap);
   ASSERT_TRUE(status);
-  std::string result = "listen 80;\n";
+  const std::string expect_result = "server {\n  location / {\n    root /data/www;\n  }\n  "  
+                                    "location /images/ {\n    root /data;\n    listen 80;\n  }\n}\n";
   std::string config_str = out_config.ToString();
-  EXPECT_EQ(result, config_str);
+  EXPECT_EQ(expect_result, config_str);
 }
 
 TEST_F(NginxConfigParserTest, FileNotExist) {
