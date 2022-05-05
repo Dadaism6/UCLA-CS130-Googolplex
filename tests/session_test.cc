@@ -134,7 +134,7 @@ TEST_F(SessionTest, EchoRequest) {
     rep = s.get_reply(echo_request, 43);
     EXPECT_EQ(rep.status, http::server::reply::ok);
     EXPECT_EQ(rep.content, expected_content);
-
+    
     addrmap.erase("/echo");
 }
 

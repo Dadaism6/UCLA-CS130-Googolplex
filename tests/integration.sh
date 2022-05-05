@@ -63,7 +63,7 @@ fi
 
 #Test 4: static server
 echo "Test4: static server"
-timeout 12s ../build/bin/webserver ./config_files/config_t_multipath &> /dev/null &
+timeout 10s ../build/bin/webserver ./config_files/config_t_multipath &> /dev/null &
 sleep 0.5
 curl localhost:80/static1/minion.jpg --output ./tmp.jpg
 sleep 0.5
@@ -132,6 +132,18 @@ else
     exit 1
 fi
 
+sleep 0.5
+curl localhost:80/static1/static3/test.txt > ./tmp.txt
+sleep 0.5
+echo "Compare the result"
+if cmp -s ../static/static3/test.txt ./tmp.txt ; then
+    rm ./tmp.txt
+    echo -e "Test 4.6 (longest prefix) pass"
+else
+    rm ./tmp.txt
+    echo -e "Test 4.6 (longest prefix) fail - content not same"
+    exit 1
+fi
 
 #Test 5: 404 Handler
 echo "Test5: 404 Handler"

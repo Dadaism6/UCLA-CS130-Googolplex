@@ -97,28 +97,31 @@ bool session::parse_request(char* request_data, int data_len, http::server::requ
 	return valid;
 }
 
-// search the location-root binding in addrmap constructed by config parser, return if found or not
-bool session::search_addr_binding(std::string location, config_arg& args)
+/* search the location-root binding recursively in addrmap constructed by config parser, 
+			return if found or not */
+bool session::search_addr_binding(std::string url, config_arg& args)
 {
-	if (addrmap.find(location) != addrmap.end()) {
-		args = addrmap.at(location);
-		return true;
-	} else {
+	char delimiter = '/'; 
+	// find last occurance of "/" to get longest match 
+	size_t pos = url.find_last_of(delimiter); 
+	if (pos != 0 && pos != std::string::npos) {
+		std::string sub_url = url.substr(0, pos);
+		if (addrmap.find(sub_url) != addrmap.end()) {
+			args = addrmap.at(sub_url);
+			return true;
+		}
+		else { // current prefix not found, recursively find shorter prefixes
+			return search_addr_binding(url.substr(0, pos), args);
+		}
+	} else if (pos == 0) { // matched with beginning "/"
+		if (addrmap.find("/") != addrmap.end()) {
+			args = addrmap.at("/");
+			return true;
+		}
+		return false;
+	} else { // npos
 		return false;
 	}
-}
-
-// get the prefix, or mode of the server (e.g. static, static1, echo) in url of http request
-std::string session::get_prefix(std::string url)
-{
-	std::string delimiter = "/";
-	if (url.length() < 1) return "";
-	std::string actual_url = url.substr(1);
-	size_t pos = actual_url.find(delimiter);
-	if (pos == std::string::npos) 
-		pos = actual_url.length();
-	std::string mode = actual_url.substr(0, pos);
-	return mode;
 }
 
 // get the reply from http request
@@ -131,11 +134,11 @@ http::server::reply session::get_reply(char* request_data, int data_len)
 	config_arg args;
 
 	if (valid) {
-		std::string prefix = get_prefix(request.uri);
-		std::string slash_prefix = "/" + prefix;
-
-		if (search_addr_binding(slash_prefix, args)) {
-			INFO << "Invoke " << args.handler_type << " and serve at location " << slash_prefix << "\n";
+		// append "/" at the end to handle cases like /echo 
+		std::string target_url = request.uri;
+		target_url.append("/");
+		if (search_addr_binding(target_url, args)) {
+			INFO << "Invoke " << args.handler_type << " and serve at location " << args.location << "\n";
 			if (args.handler_type == "StaticHandler")
 				request_handler_ = new request_handler_static(request, valid);
 			else if (args.handler_type == "EchoHandler")
@@ -145,7 +148,7 @@ http::server::reply session::get_reply(char* request_data, int data_len)
 			else
 				valid = false;
 		} else {
-			WARNING << "Cannot find the given location: " << prefix << " from the config file.\n";
+			WARNING << "Cannot find suitable prefixes for the given location: " << request.uri << " from the config file.\n";
 			valid = false;
 		}
 

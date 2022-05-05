@@ -12,6 +12,10 @@ location /static2 StaticHandler {
     root /data2;
 }
 
+location /static1/static3 StaticHandler {
+    root ../static/static3;
+}
+
 location /echo EchoHandler {
 
 }

@@ -49,12 +49,9 @@ class session
 		/* parse the request and construct a request, return whether request is valid */
 		bool parse_request(char* request_data, int data_len, http::server::request& request);
 
-		/* search the location-root binding in addrmap constructed by config parser, 
+		/* search the location-root binding recursively in addrmap constructed by config parser, 
 			return if found or not */
 		bool search_addr_binding(std::string location, config_arg& args);
-
-		/* get the prefix, or mode of the server (e.g. static, static1, echo) in url of http request */
-		std::string get_prefix(std::string url);
 };
 
 #endif  // SESSION_H
