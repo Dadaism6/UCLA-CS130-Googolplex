@@ -12,25 +12,21 @@
 
 http::server::reply request_handler_static::handle_request(Request request)
 {
-	char* in_data = request.in_data;
-    std::string dir = request.dir;
-    std::string inputsuffix = request.suffix;
-    std::string client_ip = request.client_ip;
     INFO << "Using static request handler\n";
 	http::server::reply rep;
 	http::server::request req = get_request();
 
-    std::string suffix = "/" + inputsuffix + "/";
-    size_t pos = req.uri.find(suffix);
+    std::string prefix = request.prefix + "/";
+    size_t pos = req.uri.find(prefix);
     /* if found the given location, and the url starts with the given location,
      and the string of location is smaller than the url, this is a good path */
-    if (pos != std::string::npos && pos == 0 && req.uri.length() > suffix.length()) {
-        std::string path = dir + "/" + req.uri.substr(suffix.length());
-        INFO << client_ip << ": Static request: trying to find: " << path << "\n";
+    if (pos != std::string::npos && pos == 0 && req.uri.length() > prefix.length()) {
+        std::string path = request.dir + "/" + req.uri.substr(prefix.length());
+        INFO << request.client_ip << ": Static request: trying to find: " << path << "\n";
         std::ifstream file(path, std::ios::binary);
         // read from file
         if (file.good()) {
-            INFO << client_ip << ": Reading data...\n";
+            INFO << request.client_ip << ": Reading data...\n";
             file.seekg(0, std::ios::end);
             std::string content;
             content.resize(file.tellg());
@@ -43,7 +39,7 @@ http::server::reply request_handler_static::handle_request(Request request)
             rep.headers[content_length_field].value = std::to_string(content.length());
 
             set_content_type(path, rep);
-            INFO << client_ip << ": Finish Setting Reply\n";
+            INFO << request.client_ip << ": Finish Setting Reply\n";
             file.close();
             return rep;
 

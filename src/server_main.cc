@@ -40,15 +40,39 @@ int main(int argc, char* argv[])
 	try
 	{
 		if (argc != 2) {
-			ERROR << "Usage: webserver <config_file>\n";			
+			FATAL << "Usage: webserver <config_file>\n";			
 			return 1;
 		}
 		int port = -1;
-		std::map<std::string, std::string>  addrmap;
+		std::map<std::string, config_arg>  addrmap;
 		INFO << "Preparing to parse the config file\n";
 		NginxConfigParser config_parser;
 		NginxConfig config;
+		
+		bool valid_handler = true;
 		config_parser.Parse(argv[1], &config, &port, &addrmap);
+
+		config_arg default_arg;
+		std::string error_msg = "";
+
+		for (auto const& x : addrmap) {
+			if (default_arg.valid_handler_types.find(x.second.handler_type) == default_arg.valid_handler_types.end())
+			{
+				valid_handler = false;
+				error_msg += "handler type " + x.second.handler_type + " invalid; ";
+			}
+		}
+
+		if ( !valid_handler)
+		{
+			error_msg += "Server only accepts the handler types: ";
+			for (auto const& x: default_arg.valid_handler_types)
+				error_msg += x + " ";
+			error_msg += "\n";
+			FATAL << error_msg;
+			return 1;
+		}
+
 		boost::asio::io_service io_service;
 		INFO << "Finish parsing, prepare to start the server\n";
 		server s(io_service,port, addrmap);

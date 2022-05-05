@@ -10,7 +10,7 @@
 struct Request {
     char* in_data = nullptr;
     std::string dir = "";
-    std::string suffix = "";
+    std::string prefix = "";
     std::string client_ip = "";
 };
 

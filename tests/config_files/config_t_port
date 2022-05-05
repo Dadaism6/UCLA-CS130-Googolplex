@@ -1,0 +1,7 @@
+# should be true
+# contains port number and default EchoHandler
+
+listen   80;
+location / EchoHandler {
+    
+}

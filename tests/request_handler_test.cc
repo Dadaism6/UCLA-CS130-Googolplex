@@ -7,13 +7,14 @@
 #include "request_handler.h"
 #include "request_handler_echo.h"
 #include "request_handler_static.h"
+#include "request_handler_not_found.h"
 
 class RequestHandlerTest:public::testing::Test
 {
   public:
     RequestHandlerTest() {
-        request_static.suffix = static_;
-        request_base_static.suffix = static_;
+        request_static.prefix = "/" + static_;
+        request_base_static.prefix = "/" + static_;
         request_base_static.dir = base_dir;
     }
   protected:
@@ -222,5 +223,13 @@ TEST_F(RequestHandlerTest, ContentTypeStaticTest_9)
     EXPECT_EQ(rep.status, http::server::reply::ok);
     EXPECT_EQ(rep.headers[content_type_field].value, "text/plain");
     std::remove(file_name.c_str());
+    delete req_handler;
+}
+
+TEST_F(RequestHandlerTest, NotFoundTest)
+{
+    req_handler = new request_handler_not_found(req, valid);
+    rep = req_handler -> handle_request(request_default);
+    EXPECT_EQ(rep.status, http::server::reply::not_found);
     delete req_handler;
 }

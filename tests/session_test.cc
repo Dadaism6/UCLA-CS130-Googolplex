@@ -18,7 +18,7 @@ class SessionTest:public::testing::Test
         char echo_request[44] = "GET /echo HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
         char invalid_url[43] = "GET /ech HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
         char static_request[51] = "GET /static/test HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
-        std::map<std::string, std::string> addrmap;
+        std::map<std::string, config_arg> addrmap;
         bool status;
         http::server::reply rep;
         boost::system::error_code success_ec = boost::system::errc::make_error_code(boost::system::errc::success);
@@ -28,7 +28,7 @@ class SessionTest:public::testing::Test
 // gmock session class
 class MockSession: public session {
     public:
-        MockSession(boost::asio::io_service& io_service, std::map<std::string, std::string> addrmap) : session(io_service, addrmap) {}
+        MockSession(boost::asio::io_service& io_service, std::map<std::string, config_arg> addrmap) : session(io_service, addrmap) {}
         MOCK_METHOD0(start, void());
         MOCK_METHOD0(read, void());
         MOCK_METHOD0(recycle, void());
@@ -105,9 +105,14 @@ TEST_F(SessionTest, ParseRequest_5) {
 
 // valid http request, uri is "/"
 TEST_F(SessionTest, ParseRequest_6) {
+    config_arg args;
+    args.handler_type = "EchoHandler";
+    args.location = "/";
+    addrmap["/"] = args;
     session s(io_service, addrmap);
     rep = s.get_reply(request_data_3, 39);
     EXPECT_EQ(rep.status, http::server::reply::ok);
+    addrmap.erase("/");
 }
 
 // normal invalid http request
@@ -119,11 +124,18 @@ TEST_F(SessionTest, ParseRequest_7) {
 
 // echo request
 TEST_F(SessionTest, EchoRequest) {
+    config_arg args;
+    args.handler_type = "EchoHandler";
+    args.location = "/echo";
+    addrmap["/echo"] = args;
+
     std::string expected_content(echo_request);
     session s(io_service, addrmap);
     rep = s.get_reply(echo_request, 43);
     EXPECT_EQ(rep.status, http::server::reply::ok);
     EXPECT_EQ(rep.content, expected_content);
+
+    addrmap.erase("/echo");
 }
 
 // invalid uri
@@ -135,9 +147,25 @@ TEST_F(SessionTest, InvalidURL) {
 
 // static request
 TEST_F(SessionTest, StaticRequest) {
-    addrmap["/static"] = "dummy";
+    config_arg args;
+    args.handler_type = "StaticHandler";
+    args.location = "/static";
+    args.root = "dummy";
+    addrmap["/static"] = args;
     session s(io_service, addrmap);
     rep = s.get_reply(static_request, 50);
+    EXPECT_EQ(rep.status, http::server::reply::not_found);
+}
+
+// not found request
+TEST_F(SessionTest, NotFoundRequest) {
+    config_arg args;
+    args.handler_type = "404Handler";
+    args.location = "/";
+    args.root = "";
+    addrmap["/"] = args;
+    session s(io_service, addrmap);
+    rep = s.get_reply(request_data_3, 39);
     EXPECT_EQ(rep.status, http::server::reply::not_found);
 }
 

@@ -41,7 +41,7 @@ add_library(config_parser src/config_parser.cc src/log.cc)
 add_library(request_parser src/http/request_parser.cc)
 add_library(reply src/http/reply.cc)
 add_library(logger src/log.cc)
-add_library(request_handler src/request_handler_echo.cc src/request_handler_static.cc src/log.cc)
+add_library(request_handler src/request_handler_echo.cc src/request_handler_static.cc src/request_handler_not_found.cc src/log.cc)
 add_library(content_type src/content_type.cc)
 
 # Update executable name, srcs, and deps, remember to add new 

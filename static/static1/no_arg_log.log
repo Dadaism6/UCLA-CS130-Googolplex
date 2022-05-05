@@ -1,2 +1,2 @@
 <info> Server Startup
-<error> Usage: webserver <config_file>
+<fatal> Usage: webserver <config_file>

@@ -17,6 +17,7 @@
 #include <map>
 #include "config_parser.h"
 #include "log.h"
+#include "config_arg.h"
 
 int safeportSTOI(std::string stringnumber) {
 	int result = -1;
@@ -212,7 +213,7 @@ NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream* input, 
 	return TOKEN_TYPE_EOF;
 }
 
-bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, int* port, std::map<std::string, std::string>* addrmap) {
+bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, int* port, std::map<std::string, config_arg>* addrmap) {
   std::stack<NginxConfig*> config_stack;
   config_stack.push(config);
   TokenType last_token_type = TOKEN_TYPE_START;
@@ -255,29 +256,38 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, in
 					}
 				}
 				else if((last_token_type == TOKEN_TYPE_NORMAL) && (lastoken.compare("root") == 0)){
+					// std::string location = "/static";
+					// std::string config_type = "StaticHandler";
 					std::string location = "";
+					std::string config_type = "";
 					NginxConfig* currentlayer = config_stack.top();
 					config_stack.pop();
 					if(config_stack.empty()){
-						INFO << "Config: root is not inside the child bracket of location, using default location: /static\n";
-						location = "/static";
+						// INFO << "Config: root is not inside the child bracket of location, using default location: /static\n";
 					}
 					else{
 						std::vector<std::string> parent_token = config_stack.top()->statements_.back().get()->tokens_;
-						if(parent_token.rbegin()[1].compare("location") == 0){
-							location = parent_token.rbegin()[0];
-						}
-						else{
-							INFO << "Config: root is not inside the child bracket of location, using default location: /static\n";
-							location = "/static";	
+						if(parent_token.size() >= 3 && (parent_token.rbegin()[2].compare("location") == 0)){
+							location = parent_token.rbegin()[1];
+							config_type = parent_token.rbegin()[0];
+						} else {
+							// INFO << "Config: root is not inside the child bracket of location, using default location: /static\n";
 						}
 					}
+
+					config_arg args;
+					args.handler_type = config_type;
+					args.location = location;
+					args.root = token;
+
 					if(addrmap->count(location) > 0){
-						WARNING << "Location: "<< location << " has already be mapped to a path, ignored\n"; 
+						INFO << "Location: "<< location << " has already be mapped to a path, update the root to: " << token << " and handler type to: " << args.handler_type << "\n";
+						(addrmap->find(location)) -> second = args; 
 					}
 					else{
-						addrmap->insert(std::pair<std::string,std::string>(location,token));
-						INFO << "Map location: " << location  << " with root: " << token << "\n";
+						if (location != "" && config_type != "")
+							addrmap->insert(std::pair<std::string, config_arg>(location, args));
+						INFO << "Map location: " << location  << " with root: " << token << " and type of handler: " << args.handler_type << "\n";
 					}
 					config_stack.push(currentlayer);
 				}
@@ -308,15 +318,23 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, in
 		}
 		config_stack.pop();
 		if (last_token_type == TOKEN_TYPE_START_BLOCK){
-			std::vector<std::string> previoustokens = config_stack.top()->statements_.back().get()->tokens_;
-			if(previoustokens.rbegin()[1].compare("location") == 0){
-				std::string echopath = previoustokens.rbegin()[0];
-				if(addrmap->count("") > 0){
-					WARNING << "Location: "<< "" << "(special empty string for echo) has already be mapped to a path, ignored\n"; 
+			std::vector<std::string> previous_token = config_stack.top()->statements_.back().get()->tokens_;
+			if(previous_token.size() >= 3 && previous_token.rbegin()[2].compare("location") == 0){
+				std::string location = previous_token.rbegin()[1];
+				std::string config_type = previous_token.rbegin()[0];
+
+				config_arg args;
+				args.handler_type = config_type;
+				args.location = location;
+				args.root = "";
+
+				if(addrmap->count(location) > 0){
+					INFO << "Location: "<< location << " has already be mapped to a path, update the handler_type to: " << args.handler_type << "\n";
+					(addrmap->find(location)) -> second = args; 
 				}
 				else{
-					addrmap->insert(std::pair<std::string,std::string>("",echopath));
-					INFO << "Map location: " << ""  << "(special empty string for echo) with root: " << echopath << "\n";
+					addrmap->insert(std::pair<std::string,config_arg>(location, args));
+					INFO << "Map location: " << location  << " with empty root and type of handler: " << args.handler_type <<"\n";
 				}
 
 			}
@@ -342,7 +360,7 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, in
   return false;
 }
 
-bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config, int* port, std::map<std::string, std::string>* addrmap) {
+bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config, int* port, std::map<std::string, config_arg>* addrmap) {
 	std::ifstream config_file;
 	config_file.open(file_name);
 	if (!config_file.good()) {

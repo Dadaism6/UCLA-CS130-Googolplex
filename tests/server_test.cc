@@ -9,7 +9,7 @@ using ::testing::_;
 
 class MockSessionReal : public session {
   public:
-    MockSessionReal(boost::asio::io_service& io_service, std::map<std::string, std::string> addrmap) : session(io_service, addrmap) {}
+    MockSessionReal(boost::asio::io_service& io_service, std::map<std::string, config_arg> addrmap) : session(io_service, addrmap) {}
     MOCK_METHOD2(handle_read, bool(const boost::system::error_code&,
 			size_t));
     MOCK_METHOD1(handle_write, bool(const boost::system::error_code&));
@@ -24,7 +24,7 @@ class ServerTest:public::testing::Test
         boost::system::error_code bad_ec = boost::system::errc::make_error_code(boost::system::errc::connection_refused);
         short port = 8080;
         bool status;
-        std::map<std::string, std::string> addrmap;
+        std::map<std::string, config_arg> addrmap;
 };
 
 class MockServer: public server {

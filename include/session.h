@@ -10,13 +10,14 @@
 #include "http/request_parser.h"
 #include "http/reply.h"
 #include "request_handler.h"
+#include "config_arg.h"
 
 using boost::asio::ip::tcp;
 
 class session
 {
 	public:
-		session(boost::asio::io_service& io_service, std::map<std::string, std::string> addrmap);
+		session(boost::asio::io_service& io_service, std::map<std::string, config_arg> addrmap);
 
 		tcp::socket& socket();
 
@@ -43,14 +44,14 @@ class session
 		char in_data_[max_length];
 
 		request_handler* request_handler_;
-		std::map<std::string, std::string>  addrmap;
+		std::map<std::string, config_arg>  addrmap;
 
 		/* parse the request and construct a request, return whether request is valid */
 		bool parse_request(char* request_data, int data_len, http::server::request& request);
 
 		/* search the location-root binding in addrmap constructed by config parser, 
 			return if found or not */
-		bool search_addr_binding(std::string location, std::string& root);
+		bool search_addr_binding(std::string location, config_arg& args);
 
 		/* get the prefix, or mode of the server (e.g. static, static1, echo) in url of http request */
 		std::string get_prefix(std::string url);

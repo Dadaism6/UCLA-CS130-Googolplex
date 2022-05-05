@@ -1,15 +1,19 @@
+#should be true
+#only contains port number and multiple static path
 listen   80;
 
+location /static StaticHandler {
+    root /data1;
+}
 location /static1 StaticHandler {
     root ../static/static1;
 }
-
 location /static2 StaticHandler {
-    root ../static/static2;
+    root /data2;
 }
 
 location /echo EchoHandler {
-    
+
 }
 
 location / 404Handler {

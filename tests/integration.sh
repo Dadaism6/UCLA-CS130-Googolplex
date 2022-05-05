@@ -10,7 +10,7 @@ cd $SCRIPTPATH
 # Test 1: testing good request
 echo "Test1: good request..."
 echo "Start the server and sending request..."
-timeout 1s ../build/bin/webserver ./config_t_port &>/dev/null & 
+timeout 1s ../build/bin/webserver ./config_files/config_t_port &>/dev/null & 
 sleep 0.5
 curl -s -I localhost:80 > ./tmp.txt
 sleep 0.5
@@ -27,9 +27,9 @@ fi
 # Test 2: testing bad request
 echo "Test2: bad request..."
 echo "Start the server and sending request..."
-timeout 1s ../build/bin/webserver ./config_t_port &> /dev/null &
+timeout 1s ../build/bin/webserver ./config_files/config_t_port &> /dev/null &
 sleep 0.5
-cat ./bad_request.txt | nc -C localhost 80 -q 0 > ./tmp2.txt
+cat ../static/static1/bad_request.txt | nc -C localhost 80 -q 0 > ./tmp2.txt
 sleep 0.5
 echo "Compare the result"
 if cmp -s ../static/static1/expected_bad.txt ./tmp2.txt ; then
@@ -45,16 +45,16 @@ fi
 echo "Test3: logging"
 ../build/bin/webserver &> /dev/null &
 sleep 0.1
-if sed 's/\[.*\] //g' ../log/SERVER_LOG_0.log | cmp -s ./no_arg_log.log ; then
+if sed 's/\[.*\] //g' ../log/SERVER_LOG_0.log | cmp -s ../static/static1/no_arg_log.log ; then
     echo -e "Test 3.1 pass"
 else
     echo -e "Test 3.1 fail - logging incorrect"
     exit 1
 fi
 
-timeout 0.5s ../build/bin/webserver ./config_t_port &> /dev/null &
+timeout 0.5s ../build/bin/webserver ./config_files/config_t_port &> /dev/null &
 sleep 0.5
-if sed 's/\[.*\] //g' ../log/SERVER_LOG_0.log | cmp -s ./normal_log.log ; then
+if sed 's/\[.*\] //g' ../log/SERVER_LOG_0.log | cmp -s ../static/static1/normal_log.log ; then
     echo -e "Test 3.2 pass"
 else
     echo -e "Test 3.2 fail - logging incorrect"
@@ -63,7 +63,7 @@ fi
 
 #Test 4: static server
 echo "Test4: static server"
-timeout 10s ../build/bin/webserver ./config_t_multipath &> /dev/null &
+timeout 12s ../build/bin/webserver ./config_files/config_t_multipath &> /dev/null &
 sleep 0.5
 curl localhost:80/static1/minion.jpg --output ./tmp.jpg
 sleep 0.5
@@ -125,10 +125,26 @@ if cmp -s ../static/static1/random_file_10M ./tmp_10M ; then
     rm ./tmp_10M
     rm ../static/static1/random_file_10M
     echo -e "Test 4.5 (large file) pass"
-    exit 0
 else
     rm ./tmp_10M
     rm ../static/static1/random_file_10M
     echo -e "Test 4.5 (large file) fail - content not same"
+    exit 1
+fi
+
+
+#Test 5: 404 Handler
+echo "Test5: 404 Handler"
+sleep 0.5
+curl localhost:80 > ./tmp_html
+sleep 0.5
+echo "Compare the result"
+if cmp -s ../static/static1/not_found.html ./tmp_html ; then
+    rm ./tmp_html
+    echo -e "Test 5 pass"
+    exit 0
+else
+    rm ./tmp_html
+    echo -e "Test 5 fail - content not same"
     exit 1
 fi

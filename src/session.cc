@@ -10,11 +10,14 @@
 #include "request_handler.h"
 #include "request_handler_echo.h"
 #include "request_handler_static.h"
+#include "request_handler_not_found.h"
 #include "log.h"
+#include "config_arg.h"
+
 using boost::asio::ip::tcp;
 
 
-session::session(boost::asio::io_service& io_service, std::map<std::string, std::string> addrmap) : socket_(io_service), addrmap(addrmap)
+session::session(boost::asio::io_service& io_service, std::map<std::string, config_arg> addrmap) : socket_(io_service), addrmap(addrmap)
 {
 	memset(in_data_, 0, max_length);
 }
@@ -95,10 +98,10 @@ bool session::parse_request(char* request_data, int data_len, http::server::requ
 }
 
 // search the location-root binding in addrmap constructed by config parser, return if found or not
-bool session::search_addr_binding(std::string location, std::string& root)
+bool session::search_addr_binding(std::string location, config_arg& args)
 {
 	if (addrmap.find(location) != addrmap.end()) {
-		root = addrmap.at(location);
+		args = addrmap.at(location);
 		return true;
 	} else {
 		return false;
@@ -121,50 +124,45 @@ std::string session::get_prefix(std::string url)
 // get the reply from http request
 http::server::reply session::get_reply(char* request_data, int data_len)
 {
-	std::string dir = "";
-	std::string location = "";
 
 	http::server::request request;
 	bool valid = parse_request(request_data, data_len, request);
-	bool static_server = false;
 
-	std::string echo_path = "/echo";
-	std::string static_path = "";
+	config_arg args;
 
 	if (valid) {
 		std::string prefix = get_prefix(request.uri);
 		std::string slash_prefix = "/" + prefix;
-		// the prefix of url matches the location of echo path in config
-		if (search_addr_binding("", echo_path) && (slash_prefix == echo_path)) {
-			INFO << "Bind echo server to: " << echo_path << "\n";
-		} 
-		// no location of echo path in config, the prefix of url matches default location
-		else if (!(search_addr_binding("", echo_path)) && (slash_prefix == echo_path || slash_prefix == "/")) {
-			WARNING << "Cannot find specified echo path in the config file, use default /echo or /\n";
-		} 
-		// the prefix of url matches the location of static path in config
-		else if (search_addr_binding(slash_prefix, static_path)) {
-			dir = static_path;
-			location = prefix;
-			static_server = true;
-		} 
-		// cannot find the given prefix in config/default settings, not valid request
-		else {
+
+		if (search_addr_binding(slash_prefix, args)) {
+			INFO << "Invoke " << args.handler_type << " and serve at location " << slash_prefix << "\n";
+			if (args.handler_type == "StaticHandler")
+				request_handler_ = new request_handler_static(request, valid);
+			else if (args.handler_type == "EchoHandler")
+				request_handler_ = new request_handler_echo(request, valid);
+			else if (args.handler_type == "404Handler")
+				request_handler_ = new request_handler_not_found(request, valid);	
+			else
+				valid = false;
+		} else {
 			WARNING << "Cannot find the given location: " << prefix << " from the config file.\n";
 			valid = false;
 		}
+
+	} else {
+		WARNING << "Invalid HTTP request\n";
+		valid = false;
 	}
 
-	if (static_server)
-		request_handler_ = new request_handler_static(request, valid);
-	else
+	if ( !valid)
 		request_handler_ = new request_handler_echo(request, valid);
 	
 	Request raw_request;
     raw_request.in_data = request_data;
-    raw_request.dir = dir;
-    raw_request.suffix = location;
+    raw_request.dir = args.root;
+    raw_request.prefix = args.location;
     raw_request.client_ip = client_ip_;
+
 	http::server::reply rep = request_handler_ -> handle_request(raw_request);
 	
 	delete request_handler_;
