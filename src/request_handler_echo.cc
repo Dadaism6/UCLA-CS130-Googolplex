@@ -1,35 +1,32 @@
-#include <cstdlib>
-#include "http/request.h"
-#include "http/reply.h"
-#include "request_handler.h"
-
 #include "request_handler_echo.h"
 #include "log.h"
-void request_handler_echo::handle_request(Request request, http::server::reply& reply)
-{
-	char* in_data = request.in_data;
-	INFO << request.client_ip << ": Using echo request handler\n";
 
-	// first construct a reply based on the validity of http response
-	if (get_status()) 
-	{
-        reply = http::server::reply::stock_reply(http::server::reply::ok);
+namespace http = boost::beast::http;
+
+void request_handler_echo::handle_request(http::request<http::string_body> request, http::response<http::string_body>& response)
+{
+	INFO << get_client_ip() << ": Using echo request handler\n";
+
+	// first construct a response based on the validity of http response
+	if (get_status()) {
+		response.result(http::status::ok);
 	}
-	else 
-	{
-        reply = http::server::reply::stock_reply(http::server::reply::bad_request);
-		WARNING << request.client_ip << ": Bad echo request\n"; 
+	else {
+		response.result(http::status::bad_request);
+		response.set(http::field::content_type, "text/html");
+		response.body() = "<html><head><title>Bad Request</title></head><body><h1>400 Bad Request</h1></body></html>";
+		WARNING << get_client_ip() << ": Bad echo request\n"; 
 	}
 
 	// set the content of the response according to in_data char array
-	if (in_data == nullptr) {
-		reply.content = "";
-		reply.headers[content_length_field].value = "0";
-	} else {
-		std::string response_content(in_data);
-		reply.content = response_content; // set the content to be the http request
-		reply.headers[content_length_field].value = std::to_string(strlen(in_data));
-	}
-	reply.headers[content_type_field].value = "text/plain";	// content type
+	std::ostringstream oss;
+	oss << request;
+	std::string content = oss.str();
+	oss.clear();
+
+	response.body() = content; 
+	response.set(http::field::content_type, "text/plain");
+	response.prepare_payload();
+	
 	return;
 }

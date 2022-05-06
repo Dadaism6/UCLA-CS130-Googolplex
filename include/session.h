@@ -6,13 +6,12 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/beast/http.hpp>
-#include "http/request.h"
-#include "http/request_parser.h"
-#include "http/reply.h"
+
 #include "request_handler.h"
 #include "config_arg.h"
 
 using boost::asio::ip::tcp;
+namespace http = boost::beast::http;
 
 class session
 {
@@ -34,12 +33,12 @@ class session
 		virtual bool handle_write(const boost::system::error_code& error);
 
 		// get the reply from http request
-		http::server::reply get_reply(char* request_data, int data_len);
+		std::string get_reply(char* request_data, int data_len);
 
 	private:
 		std::string client_ip_;
 		tcp::socket socket_;
-		http::server::reply rep_;
+		std::string rep_;
 		enum { max_length = 1024,  content_length_field = 0, content_type_field = 1};
 		char in_data_[max_length];
 
@@ -47,7 +46,7 @@ class session
 		std::map<std::string, config_arg>  addrmap;
 
 		/* parse the request and construct a request, return whether request is valid */
-		bool parse_request(char* request_data, int data_len, http::server::request& request);
+		bool parse_request(char* request_data, int data_len, http::request<http::string_body>& request);
 
 		/* search the location-root binding recursively in addrmap constructed by config parser, 
 			return if found or not */
