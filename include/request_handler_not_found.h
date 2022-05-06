@@ -13,7 +13,7 @@ class request_handler_not_found: public request_handler
 
     public:
         using request_handler::request_handler;
-        http::server::reply handle_request(Request request);
+        void handle_request(Request request, http::server::reply& reply);
 
 };
 

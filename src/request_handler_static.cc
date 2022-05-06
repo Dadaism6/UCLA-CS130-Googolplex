@@ -10,10 +10,9 @@
 #include "log.h"
 #include "content_type.h"
 
-http::server::reply request_handler_static::handle_request(Request request)
+void request_handler_static::handle_request(Request request, http::server::reply& reply)
 {
     INFO << "Using static request handler\n";
-	http::server::reply rep;
 	http::server::request req = get_request();
 
     std::string prefix = request.prefix + "/";
@@ -34,21 +33,21 @@ http::server::reply request_handler_static::handle_request(Request request)
             file.read(&content[0], content.size());
 
             // if found the file, set reply
-            rep = http::server::reply::stock_reply(http::server::reply::ok);
-            rep.content = content;
-            rep.headers[content_length_field].value = std::to_string(content.length());
+            reply = http::server::reply::stock_reply(http::server::reply::ok);
+            reply.content = content;
+            reply.headers[content_length_field].value = std::to_string(content.length());
 
-            set_content_type(path, rep);
+            set_content_type(path, reply);
             INFO << request.client_ip << ": Finish Setting Reply\n";
             file.close();
-            return rep;
+            return;
 
         }
         file.close();
     }    
     // cannot find the file
-    rep = http::server::reply::stock_reply(http::server::reply::not_found);
-	return rep;
+    reply = http::server::reply::stock_reply(http::server::reply::not_found);
+	return;
 }
 
 std::string request_handler_static::set_content_type(std::string file_path, http::server::reply& rep)

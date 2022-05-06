@@ -124,6 +124,15 @@ bool session::search_addr_binding(std::string url, config_arg& args)
 	}
 }
 
+request_handler* create_handler(http::server::request& req, bool valid, config_arg arg) {
+    INFO << "Invoke " << arg.handler_type << " and serve at location " << arg.location << "\n";
+    if (arg.handler_type == "StaticHandler")
+        return new request_handler_static(req, valid);
+    if (arg.handler_type == "EchoHandler")
+        return new request_handler_echo(req, valid);
+    return new request_handler_not_found(req, valid);
+}
+
 // get the reply from http request
 http::server::reply session::get_reply(char* request_data, int data_len)
 {
@@ -132,43 +141,26 @@ http::server::reply session::get_reply(char* request_data, int data_len)
 	bool valid = parse_request(request_data, data_len, request);
 
 	config_arg args;
-
+	
 	if (valid) {
-		// append "/" at the end to handle cases like /echo 
 		std::string target_url = request.uri;
 		target_url.append("/");
-		if (search_addr_binding(target_url, args)) {
-			INFO << "Invoke " << args.handler_type << " and serve at location " << args.location << "\n";
-			if (args.handler_type == "StaticHandler")
-				request_handler_ = new request_handler_static(request, valid);
-			else if (args.handler_type == "EchoHandler")
-				request_handler_ = new request_handler_echo(request, valid);
-			else if (args.handler_type == "404Handler")
-				request_handler_ = new request_handler_not_found(request, valid);	
-			else
-				valid = false;
-		} else {
-			WARNING << "Cannot find suitable prefixes for the given location: " << request.uri << " from the config file.\n";
-			valid = false;
-		}
-
-	} else {
-		WARNING << "Invalid HTTP request\n";
-		valid = false;
+		valid = search_addr_binding(target_url, args);
 	}
 
-	if ( !valid)
-		request_handler_ = new request_handler_echo(request, valid);
-	
+	request_handler_ = create_handler(request, valid, args);
+
 	Request raw_request;
     raw_request.in_data = request_data;
     raw_request.dir = args.root;
     raw_request.prefix = args.location;
     raw_request.client_ip = client_ip_;
 
-	http::server::reply rep = request_handler_ -> handle_request(raw_request);
-	
+	http::server::reply reply;
+	request_handler_ -> handle_request(raw_request, reply);
+
 	delete request_handler_;
 	request_handler_ = NULL;
-	return rep;
+
+	return reply;
 }
