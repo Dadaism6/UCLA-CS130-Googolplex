@@ -17,6 +17,7 @@ class RequestHandlerFactory
     public:
         RequestHandlerFactory(config_arg arg);
         request_handler* create();
+
     private:
         config_arg arg;
 };

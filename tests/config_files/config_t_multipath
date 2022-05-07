@@ -20,6 +20,6 @@ location /echo EchoHandler {
 
 }
 
-location / 404Handler {
+location / NotFoundHandler {
     
 }

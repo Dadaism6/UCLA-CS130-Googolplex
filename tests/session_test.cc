@@ -18,6 +18,7 @@ class SessionTest:public::testing::Test
 {
     public:
         SessionTest() {
+            // manually create dispatcher mapping
             config_arg echo_arg;
             echo_arg.location = "/echo";
             echo_arg.root = "";
@@ -48,13 +49,23 @@ class SessionTest:public::testing::Test
         boost::system::error_code bad_ec = boost::system::errc::make_error_code(boost::system::errc::connection_refused);
 
         char request_data_1[1] = "";
+        const int request_data_1_invalid_length = -1;
+        const int request_data_1_length = 0;
         char request_data_2[5] = "\r\n\r\n";
+        const int request_data_2_length = 4;
+        const int request_data_2_invalid_length = 1025;
         char request_data_3[40] = "GET / HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
+        const int request_data_3_length = 39;
         char request_data_4[6] = "hello";
+        const int request_data_4_length = 5;
         char echo_request[44] = "GET /echo HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
+        const int echo_request_length = 43;
         char invalid_url[43] = "GET /ech HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
+        const int invalid_url_length = 42;
         char static_request[51] = "GET /static/test HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
+        const int static_request_length = 50;
         char trailing_slash[21] = "GET // HTTP/1.1\r\n\r\n";
+        const int trailing_slash_length = 20;
 
         std::string not_found = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 85\r\n\r\n<html><head><title>Not Found</title></head><body><h1>404 Not Found</h1></body></html>";
 
@@ -110,14 +121,14 @@ TEST_F(SessionTest, SessionConstruction) {
 // negative data length
 TEST_F(SessionTest, GenerateResponse_1) {
     session s(io_service, routes);
-    rep = s.generate_response(request_data_1, -1);
+    rep = s.generate_response(request_data_1, request_data_1_invalid_length);
     EXPECT_EQ(rep.result(), http::status::bad_request);
 }
 
 // out of bound data length
 TEST_F(SessionTest, GenerateResponse_2) {
     session s(io_service, routes);
-    rep = s.generate_response(request_data_2, 1025);
+    rep = s.generate_response(request_data_2, request_data_2_invalid_length);
     EXPECT_EQ(rep.result(), http::status::bad_request);
 }
 
@@ -131,27 +142,28 @@ TEST_F(SessionTest, GenerateResponse_3) {
 // empty data not valid request
 TEST_F(SessionTest, GenerateResponse_4) {
     session s(io_service, routes);
-    rep = s.generate_response(request_data_1, 0);
+    rep = s.generate_response(request_data_1, request_data_1_length);
     EXPECT_EQ(rep.result(), http::status::bad_request);
 }
 
 // only crlf*2 not valid
 TEST_F(SessionTest, GenerateResponse_5) {
     session s(io_service, routes);
-    rep = s.generate_response(request_data_2, 4);
+    rep = s.generate_response(request_data_2, request_data_2_length);
     EXPECT_EQ(rep.result(), http::status::bad_request);
 }
 
 // normal invalid http request
 TEST_F(SessionTest, GenerateResponse_6) {
     session s(io_service, routes);
-    rep = s.generate_response(request_data_4, 5);
+    rep = s.generate_response(request_data_4, request_data_4_length);
     EXPECT_EQ(rep.result(), http::status::bad_request);
 }
 
+// not found handler request
 TEST_F(SessionTest, GetReply) {
     session s(io_service, routes);
-    rep_str = s.get_reply(request_data_3, 39);
+    rep_str = s.get_reply(request_data_3, request_data_3_length);
     EXPECT_EQ(rep_str, not_found);
 }
 
@@ -159,7 +171,7 @@ TEST_F(SessionTest, GetReply) {
 TEST_F(SessionTest, EchoRequest) {
     std::string expected_content(echo_request);
     session s(io_service, routes);
-    rep = s.generate_response(echo_request, 43);
+    rep = s.generate_response(echo_request, echo_request_length);
     EXPECT_EQ(rep.result(), http::status::ok);
     EXPECT_EQ(rep.body(), expected_content);
 }
@@ -167,23 +179,23 @@ TEST_F(SessionTest, EchoRequest) {
 // invalid uri
 TEST_F(SessionTest, InvalidURL) {
     session s(io_service, routes);
-    rep = s.generate_response(invalid_url, 42);
+    rep = s.generate_response(invalid_url, invalid_url_length);
     EXPECT_EQ(rep.result(), http::status::not_found);
 }
 
 // static request
 TEST_F(SessionTest, StaticRequest) {
     session s(io_service, routes);
-    rep = s.generate_response(static_request, 50);
+    rep = s.generate_response(static_request, static_request_length);
     EXPECT_EQ(rep.result(), http::status::not_found);
 }
 
 // not found request
 TEST_F(SessionTest, NotFoundRequest) {
     session s(io_service, routes);
-    rep = s.generate_response(request_data_3, 39);
+    rep = s.generate_response(request_data_3, request_data_3_length);
     EXPECT_EQ(rep.result(), http::status::not_found);
-    rep = s.generate_response(trailing_slash, 20);
+    rep = s.generate_response(trailing_slash, trailing_slash_length);
     EXPECT_EQ(rep.result(), http::status::not_found);
 }
 

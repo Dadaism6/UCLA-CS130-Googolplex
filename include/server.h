@@ -17,8 +17,7 @@ class server
 		server(boost::asio::io_service& io_service, short port, std::map<std::string, config_arg> addrmap);
 		~server();
 		virtual void start_accept();
-		bool handle_accept(session* new_session,
-			const boost::system::error_code& error);
+		bool handle_accept(session* new_session, const boost::system::error_code& error);
 		void create_dispatcher(std::map<std::string, config_arg> addrmap);
 
 	private:

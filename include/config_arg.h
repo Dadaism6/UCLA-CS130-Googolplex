@@ -10,6 +10,6 @@ struct config_arg {
     std::string location = "";
     std::string root = "";
 
-    std::set<std::string> valid_handler_types = {"StaticHandler", "EchoHandler", "404Handler"};
+    std::set<std::string> valid_handler_types = {"StaticHandler", "EchoHandler", "NotFoundHandler"};
 };
 #endif // CONFIG_ARG_H

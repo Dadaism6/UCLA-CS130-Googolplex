@@ -23,6 +23,9 @@ class request_handler
 
         enum {content_length_field = 0, content_type_field = 1};
 
+    protected:
+        std::string not_found_msg = "<html><head><title>Not Found</title></head><body><h1>404 Not Found</h1></body></html>";
+
     private:
         std::string client_ip_;
         std::string prefix_;

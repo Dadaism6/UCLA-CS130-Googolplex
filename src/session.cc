@@ -84,11 +84,10 @@ bool session::parse_request(char* request_data, int data_len, http::request<http
 		return false;
 	request = p.release();
 	return true;
-   
 }
 
-/* search the location-root binding recursively in addrmap constructed by config parser, 
-			return if found or not */
+/* search the location-root binding recursively in addrmap constructed by config parser 
+   return if found or not */
 bool session::search_addr_binding(std::string url, std::string& location)
 {
 	char delimiter = '/'; 
@@ -103,15 +102,11 @@ bool session::search_addr_binding(std::string url, std::string& location)
 		else { // current prefix not found, recursively find shorter prefixes
 			return search_addr_binding(url.substr(0, pos), location);
 		}
-	} else if (pos == 0) { // matched with beginning "/"
-		if (routes.find("/") != routes.end()) {
-			location = "/";
-			return true;
-		}
-		return false;
-	} else { // npos
-		return false;
+	} else if (pos == 0 && routes.find("/") != routes.end()) { // matched with beginning "/"
+		location = "/";
+		return true;
 	}
+	return false; // npos
 }
 
 
@@ -126,6 +121,7 @@ http::response<http::string_body> session::generate_response(char* request_data,
 		target_url.append("/");
 		if(search_addr_binding(target_url, location))
 		{
+			// Use factory method for dispatching
 			request_handler_ = routes[location]->create();
 			request_handler_ -> set_client_ip(client_ip_);
 
@@ -133,7 +129,7 @@ http::response<http::string_body> session::generate_response(char* request_data,
 				INFO << "Successfully handled the request, return response to client " << client_ip_ << "\n";
 			else
 				INFO << "Something went wrong when handling the request, return response to client " << client_ip_ << "\n";
-			delete request_handler_;
+			delete request_handler_;  // short life cycle request handler
 			return response;
 		}
 	}
@@ -145,9 +141,7 @@ http::response<http::string_body> session::generate_response(char* request_data,
 // get the reply from http request
 std::string session::get_reply(char* request_data, int data_len)
 {
-
 	http::response<http::string_body> response = generate_response(request_data, data_len);
-
 	std::ostringstream oss;
     oss << response;
     std::string reply = oss.str();

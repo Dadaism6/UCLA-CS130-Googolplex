@@ -8,7 +8,7 @@ bool request_handler_not_found::handle_request(http::request<http::string_body> 
 	INFO << get_client_ip() << ": Using not_found request handler\n";
 	response.set(http::field::content_type, "text/html");
 	response.result(http::status::not_found);
-	response.body() = "<html><head><title>Not Found</title></head><body><h1>404 Not Found</h1></body></html>";
+	response.body() = not_found_msg;
 	response.prepare_payload();
 	return true;
 }

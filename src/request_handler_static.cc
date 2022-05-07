@@ -10,15 +10,16 @@ namespace http = boost::beast::http;
 
 bool request_handler_static::handle_request(http::request<http::string_body> request, http::response<http::string_body>& response)
 {
-    INFO << "Using static request handler\n";
+    INFO << ": Using static request handler\n";
 
     std::string prefix = get_prefix() + "/";
     size_t pos = request.target().find(prefix);
-    /* if found the given location, and the url starts with the given location,
-     and the string of location is smaller than the url, this is a good path */
+    // if found the given location, and the url starts with the given location,
+    // and the string of location is smaller than the url, this is a valid path
     if (pos != std::string::npos && pos == 0 && request.target().length() > prefix.length()) {
         std::string path = get_dir() + "/" + std::string(request.target().substr(prefix.length()));
         INFO << get_client_ip() << ": Static request: trying to find: " << path << "\n";
+        
         std::ifstream file(path, std::ios::binary);
         // read from file
         if (file.good()) {
@@ -40,11 +41,12 @@ bool request_handler_static::handle_request(http::request<http::string_body> req
             return true;
         }
         file.close();
+        INFO << get_client_ip() << ": Static request: cannot find requested file: " << path << "\n";
     }    
     // cannot find the file
     response.result(http::status::not_found);
     response.set(http::field::content_type, "text/html");
-    response.body() = "<html><head><title>Not Found</title></head><body><h1>404 Not Found</h1></body></html>";
+    response.body() = not_found_msg;
     response.prepare_payload();
 
 	return false;

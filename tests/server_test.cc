@@ -74,9 +74,9 @@ TEST_F(ServerTest, MockServerTest1) {
     m_server.handle_accept(session_ptr, success_ec);
 }
 
-// server handle accept with error code (bad)
-// cannot use gmock here, may raise child aborted
-// use self defined mock here
+/* server handle accept with error code (bad)
+   cannot use gmock here, may raise child aborted
+   use self defined mock here */
 TEST_F(ServerTest, HandleAccept_2) {
     MockServer s(io_service, port, addrmap);
     MockSession* mock_session = new MockSession(io_service, routes);
