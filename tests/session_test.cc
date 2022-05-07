@@ -7,6 +7,7 @@
 #include "request_handler_echo.h"
 #include "request_handler_static.h"
 #include "request_handler_not_found.h"
+#include "request_handler_factory.h"
 
 using ::testing::AtLeast;    
 using ::testing::_;
@@ -17,13 +18,25 @@ class SessionTest:public::testing::Test
 {
     public:
         SessionTest() {
-            dispatcher["/echo"] = new request_handler_echo("/echo", "");
-            dispatcher["/static"] = new request_handler_static("/static", "dummy");
-            dispatcher["/"] = new request_handler_not_found("/", "");
+            config_arg echo_arg;
+            echo_arg.location = "/echo";
+            echo_arg.root = "";
+            echo_arg.handler_type = "EchoHandler";
+            config_arg static_arg;
+            static_arg.location = "/static";
+            static_arg.root = "";
+            static_arg.handler_type = "StaticHandler";
+            config_arg not_found_arg;
+            not_found_arg.location = "/";
+            not_found_arg.root = "";
+            not_found_arg.handler_type = "404Handler";
+            routes["/echo"] = new RequestHandlerFactory(echo_arg);
+            routes["/static"] = new RequestHandlerFactory(static_arg);
+            routes["/"] = new RequestHandlerFactory(not_found_arg);
         }
 
         ~SessionTest() {
-            for (auto const& x : dispatcher) {
+            for (auto const& x : routes) {
                 if (x.second != NULL)
                     delete x.second;
             }
@@ -47,14 +60,14 @@ class SessionTest:public::testing::Test
 
         bool status;
         std::string rep_str;
-        std::map<std::string, request_handler*> dispatcher;
+        std::map<std::string, RequestHandlerFactory*> routes;
         boost::beast::http::response<boost::beast::http::string_body> rep;
 };
 
 // gmock session class
 class MockSession: public session {
     public:
-        MockSession(boost::asio::io_service& io_service, std::map<std::string, request_handler*> dispatcher) : session(io_service, dispatcher) {}
+        MockSession(boost::asio::io_service& io_service, std::map<std::string, RequestHandlerFactory*> routes) : session(io_service, routes) {}
         MOCK_METHOD0(start, void());
         MOCK_METHOD0(read, void());
         MOCK_METHOD0(recycle, void());
@@ -62,82 +75,82 @@ class MockSession: public session {
 
 // mock test handle_write with no error code
 TEST_F(SessionTest, MockWrite1) {
-    MockSession mocksession(io_service, dispatcher);
+    MockSession mocksession(io_service, routes);
     EXPECT_CALL(mocksession, start()).Times(AtLeast(1));
     mocksession.handle_write(success_ec);
 } 
 
 // mock test handle_write with error code
 TEST_F(SessionTest, MockWrite2) {
-    MockSession mocksession(io_service, dispatcher);
+    MockSession mocksession(io_service, routes);
     EXPECT_CALL(mocksession, recycle()).Times(AtLeast(1));
     mocksession.handle_write(bad_ec);
 } 
 
 // mock test handle_read with no error code
 TEST_F(SessionTest, MockRead1) {
-    MockSession mocksession(io_service, dispatcher);
+    MockSession mocksession(io_service, routes);
     EXPECT_CALL(mocksession, read()).Times(AtLeast(1));
     mocksession.handle_read(success_ec, 0);
 } 
 
 // mock test handle_read with error code
 TEST_F(SessionTest, MockRead2) {
-    MockSession mocksession(io_service, dispatcher);
+    MockSession mocksession(io_service, routes);
     EXPECT_CALL(mocksession, recycle()).Times(AtLeast(1));
     mocksession.handle_read(bad_ec, 0);
 } 
 
 // test session constructor
 TEST_F(SessionTest, SessionConstruction) {
-    session s(io_service, dispatcher);
+    session s(io_service, routes);
     EXPECT_TRUE(true);
 }
 
 // negative data length
 TEST_F(SessionTest, GenerateResponse_1) {
-    session s(io_service, dispatcher);
+    session s(io_service, routes);
     rep = s.generate_response(request_data_1, -1);
     EXPECT_EQ(rep.result(), http::status::bad_request);
 }
 
 // out of bound data length
 TEST_F(SessionTest, GenerateResponse_2) {
-    session s(io_service, dispatcher);
+    session s(io_service, routes);
     rep = s.generate_response(request_data_2, 1025);
     EXPECT_EQ(rep.result(), http::status::bad_request);
 }
 
 // null printer as input
 TEST_F(SessionTest, GenerateResponse_3) {
-    session s(io_service, dispatcher);
+    session s(io_service, routes);
     rep = s.generate_response(nullptr, 0);
     EXPECT_EQ(rep.result(), http::status::bad_request);
 }
 
 // empty data not valid request
 TEST_F(SessionTest, GenerateResponse_4) {
-    session s(io_service, dispatcher);
+    session s(io_service, routes);
     rep = s.generate_response(request_data_1, 0);
     EXPECT_EQ(rep.result(), http::status::bad_request);
 }
 
 // only crlf*2 not valid
 TEST_F(SessionTest, GenerateResponse_5) {
-    session s(io_service, dispatcher);
+    session s(io_service, routes);
     rep = s.generate_response(request_data_2, 4);
     EXPECT_EQ(rep.result(), http::status::bad_request);
 }
 
 // normal invalid http request
 TEST_F(SessionTest, GenerateResponse_6) {
-    session s(io_service, dispatcher);
+    session s(io_service, routes);
     rep = s.generate_response(request_data_4, 5);
     EXPECT_EQ(rep.result(), http::status::bad_request);
 }
 
 TEST_F(SessionTest, GetReply) {
-    session s(io_service, dispatcher);
+    session s(io_service, routes);
     rep_str = s.get_reply(request_data_3, 39);
     EXPECT_EQ(rep_str, not_found);
 }
@@ -145,7 +158,7 @@ TEST_F(SessionTest, GetReply) {
 // echo request
 TEST_F(SessionTest, EchoRequest) {
     std::string expected_content(echo_request);
-    session s(io_service, dispatcher);
+    session s(io_service, routes);
     rep = s.generate_response(echo_request, 43);
     EXPECT_EQ(rep.result(), http::status::ok);
     EXPECT_EQ(rep.body(), expected_content);
@@ -153,21 +166,21 @@ TEST_F(SessionTest, EchoRequest) {
 
 // invalid uri
 TEST_F(SessionTest, InvalidURL) {
-    session s(io_service, dispatcher);
+    session s(io_service, routes);
     rep = s.generate_response(invalid_url, 42);
     EXPECT_EQ(rep.result(), http::status::not_found);
 }
 
 // static request
 TEST_F(SessionTest, StaticRequest) {
-    session s(io_service, dispatcher);
+    session s(io_service, routes);
     rep = s.generate_response(static_request, 50);
     EXPECT_EQ(rep.result(), http::status::not_found);
 }
 
 // not found request
 TEST_F(SessionTest, NotFoundRequest) {
-    session s(io_service, dispatcher);
+    session s(io_service, routes);
     rep = s.generate_response(request_data_3, 39);
     EXPECT_EQ(rep.result(), http::status::not_found);
     rep = s.generate_response(trailing_slash, 20);
@@ -176,7 +189,7 @@ TEST_F(SessionTest, NotFoundRequest) {
 
 // test recycle and delete
 TEST_F(SessionTest, SessionRecycle) {
-    session* s = new session(io_service, dispatcher);
+    session* s = new session(io_service, routes);
     s -> recycle();
     ASSERT_DEATH({s -> recycle();}, "");
     EXPECT_TRUE(true);

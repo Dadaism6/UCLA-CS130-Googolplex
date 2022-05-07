@@ -18,10 +18,6 @@
 #include "config_parser.h"
 #include "log.h"
 
-#include "request_handler.h"
-#include "request_handler_echo.h"
-#include "request_handler_static.h"
-#include "request_handler_not_found.h"
 
 using boost::asio::ip::tcp;
 
@@ -31,14 +27,6 @@ void signalHandler( int signum ) {
    exit(signum);  
 }
 
-request_handler* create_handler(config_arg arg) {
-    INFO << "Invoke " << arg.handler_type << " and serve at location " << arg.location << "\n";
-    if (arg.handler_type == "StaticHandler")
-        return new request_handler_static(arg.location, arg.root);
-    if (arg.handler_type == "EchoHandler")
-        return new request_handler_echo(arg.location, arg.root);
-    return new request_handler_not_found(arg.location, arg.root);
-}
 
 int main(int argc, char* argv[])
 { 
@@ -90,13 +78,7 @@ int main(int argc, char* argv[])
 		boost::asio::io_service io_service;
 		INFO << "Finish parsing, prepare to start the server\n";
 
-		// TODO: currently, no good way to delete the handlers after use
-		std::map<std::string, request_handler*> dispatcher;
-		for (auto const& x : addrmap) {
-			dispatcher[x.first] = create_handler(x.second);
-		}
-
-		server s(io_service, port, dispatcher);
+		server s(io_service, port, addrmap);
 		io_service.run();
 	}
 	catch (std::exception& e)

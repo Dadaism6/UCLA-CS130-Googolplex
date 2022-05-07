@@ -12,7 +12,7 @@ using boost::asio::ip::tcp;
 
 namespace http = boost::beast::http;
 
-session::session(boost::asio::io_service& io_service, std::map<std::string, request_handler*> dispatcher) : socket_(io_service), dispatcher(dispatcher)
+session::session(boost::asio::io_service& io_service, std::map<std::string, RequestHandlerFactory*> routes) : socket_(io_service), routes(routes)
 {
 	memset(in_data_, 0, max_length);
 }
@@ -96,7 +96,7 @@ bool session::search_addr_binding(std::string url, std::string& location)
 	size_t pos = url.find_last_of(delimiter); 
 	if (pos != 0 && pos != std::string::npos) {
 		std::string sub_url = url.substr(0, pos);
-		if (dispatcher.find(sub_url) != dispatcher.end()) {
+		if (routes.find(sub_url) != routes.end()) {
 			location = sub_url;
 			return true;
 		}
@@ -104,7 +104,7 @@ bool session::search_addr_binding(std::string url, std::string& location)
 			return search_addr_binding(url.substr(0, pos), location);
 		}
 	} else if (pos == 0) { // matched with beginning "/"
-		if (dispatcher.find("/") != dispatcher.end()) {
+		if (routes.find("/") != routes.end()) {
 			location = "/";
 			return true;
 		}
@@ -126,13 +126,14 @@ http::response<http::string_body> session::generate_response(char* request_data,
 		target_url.append("/");
 		if(search_addr_binding(target_url, location))
 		{
-			request_handler_ = dispatcher[location];
+			request_handler_ = routes[location]->create();
 			request_handler_ -> set_client_ip(client_ip_);
 
 			if(request_handler_ -> handle_request(request, response))
 				INFO << "Successfully handled the request, return response to client " << client_ip_ << "\n";
 			else
 				INFO << "Something went wrong when handling the request, return response to client " << client_ip_ << "\n";
+			delete request_handler_;
 			return response;
 		}
 	}

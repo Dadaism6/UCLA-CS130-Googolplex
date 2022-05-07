@@ -8,6 +8,7 @@
 #include <boost/beast/http.hpp>
 
 #include "request_handler.h"
+#include "request_handler_factory.h"
 
 using boost::asio::ip::tcp;
 namespace http = boost::beast::http;
@@ -15,7 +16,7 @@ namespace http = boost::beast::http;
 class session
 {
 	public:
-		session(boost::asio::io_service& io_service, std::map<std::string, request_handler*> dispatcher);
+		session(boost::asio::io_service& io_service, std::map<std::string, RequestHandlerFactory*> routes);
 
 		tcp::socket& socket();
 
@@ -43,7 +44,7 @@ class session
 		char in_data_[max_length];
 
 		request_handler* request_handler_;
-		std::map<std::string, request_handler*> dispatcher;
+		std::map<std::string, RequestHandlerFactory*> routes;
 
 		/* parse the request and construct a request, return whether request is valid */
 		bool parse_request(char* request_data, int data_len, http::request<http::string_body>& request);
