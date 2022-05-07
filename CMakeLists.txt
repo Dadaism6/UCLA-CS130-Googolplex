@@ -48,31 +48,26 @@ add_executable(webserver src/server_main.cc)
 target_link_libraries(webserver logger session server_src config_parser request_handler content_type pthread Boost::system Boost::filesystem Boost::log_setup Boost::log)
 
 # Update test executable name, srcs, and deps
-# add_executable(example_lib_test tests/example_lib_test.cc)
-# target_link_libraries(example_lib_test example_lib gtest_main)
 add_executable(config_parser_test tests/config_parser_test.cc)
 target_link_libraries(config_parser_test logger config_parser gtest_main Boost::system Boost::filesystem Boost::log_setup Boost::log)
 
-# add_executable(server_test tests/server_test.cc)
-# target_link_libraries(server_test logger server_src request_parser request_handler reply content_type gtest_main gmock_main Boost::filesystem Boost::system Boost::log_setup Boost::log)
+add_executable(server_test tests/server_test.cc)
+target_link_libraries(server_test logger server_src request_handler content_type gtest_main gmock_main Boost::filesystem Boost::system Boost::log_setup Boost::log)
 
-# add_executable(session_test tests/session_test.cc)
-# target_link_libraries(session_test logger session request_parser request_handler reply content_type gtest_main gmock_main Boost::filesystem Boost::system Boost::log_setup Boost::log)
+add_executable(session_test tests/session_test.cc)
+target_link_libraries(session_test logger session request_handler content_type gtest_main gmock_main Boost::filesystem Boost::system Boost::log_setup Boost::log)
 
-# add_executable(request_handler_test tests/request_handler_test.cc)
-# target_link_libraries(request_handler_test logger request_handler reply content_type request_parser gtest_main Boost::filesystem Boost::log_setup Boost::log)
+add_executable(request_handler_test tests/request_handler_test.cc)
+target_link_libraries(request_handler_test logger request_handler content_type gtest_main Boost::filesystem Boost::log_setup Boost::log)
 
 # Update with test binary
-# gtest_discover_tests(example_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-# gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-# gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-# gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-# gtest_discover_tests(request_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(request_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_test(NAME ServerIntegrationTest COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration.sh)
 
 # Update with target/test targets
-# include(cmake/CodeCoverageReportConfig.cmake)
-# generate_coverage_report(TARGETS example_server example_lib TESTS example_lib_test)
 include(cmake/CodeCoverageReportConfig.cmake)
 generate_coverage_report(TARGETS session server_src config_parser request_handler content_type TESTS config_parser_test server_test session_test request_handler_test)

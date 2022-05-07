@@ -8,7 +8,7 @@
 
 namespace http = boost::beast::http;
 
-void request_handler_static::handle_request(http::request<http::string_body> request, http::response<http::string_body>& response)
+bool request_handler_static::handle_request(http::request<http::string_body> request, http::response<http::string_body>& response)
 {
     INFO << "Using static request handler\n";
 
@@ -37,7 +37,7 @@ void request_handler_static::handle_request(http::request<http::string_body> req
             INFO << get_client_ip() << ": Finish Setting Response\n";
 
             file.close();
-            return;
+            return true;
         }
         file.close();
     }    
@@ -47,7 +47,7 @@ void request_handler_static::handle_request(http::request<http::string_body> req
     response.body() = "<html><head><title>Not Found</title></head><body><h1>404 Not Found</h1></body></html>";
     response.prepare_payload();
 
-	return;
+	return false;
 }
 
 std::string request_handler_static::set_content_type(std::string file_path, http::response<http::string_body>& response)

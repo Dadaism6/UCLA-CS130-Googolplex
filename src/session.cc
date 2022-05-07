@@ -4,18 +4,15 @@
 #include <boost/beast/core/buffers_to_string.hpp>
 
 #include "session.h"
-#include "request_handler_echo.h"
-#include "request_handler_static.h"
-#include "request_handler_not_found.h"
 #include "log.h"
-#include "config_arg.h"
+#include "request_handler.h"
 
 
 using boost::asio::ip::tcp;
 
 namespace http = boost::beast::http;
 
-session::session(boost::asio::io_service& io_service, std::map<std::string, config_arg> addrmap) : socket_(io_service), addrmap(addrmap)
+session::session(boost::asio::io_service& io_service, std::map<std::string, request_handler*> dispatcher) : socket_(io_service), dispatcher(dispatcher)
 {
 	memset(in_data_, 0, max_length);
 }
@@ -78,25 +75,13 @@ bool session::handle_write(const boost::system::error_code& error)
 // parse the request and construct a request, return whether request is valid
 bool session::parse_request(char* request_data, int data_len, http::request<http::string_body>& request)
 {
-	// bool valid;
-	// char* dummy;
-	// http::server::request_parser::result_type result;
-	// if (data_len < 0 || data_len > max_length || request_data == nullptr) 
-	// {
-	// 	valid = false;
-	// } else {
-	// 	simple::request_parser request_parser;
-	// 	std::tie(result, dummy) = request_parser.parse(request, request_data, request_data + data_len);
-	// 	if ((request.uri == "/") || (result == simple::request_parser::good && request.uri[0] == '/'))
-	// 		valid = true;
-	// 	else
-	// 		valid = false;
-	// }
-	// return valid;
+	if (data_len < 0 || data_len > max_length || request_data == nullptr) 
+		return false;
 	boost::beast::error_code ec;
 	http::request_parser<http::string_body> p;
 	p.put(boost::asio::buffer(std::string(request_data)), ec);
-	if (ec) return false;
+	if (ec) 
+		return false;
 	request = p.release();
 	return true;
    
@@ -104,23 +89,23 @@ bool session::parse_request(char* request_data, int data_len, http::request<http
 
 /* search the location-root binding recursively in addrmap constructed by config parser, 
 			return if found or not */
-bool session::search_addr_binding(std::string url, config_arg& args)
+bool session::search_addr_binding(std::string url, std::string& location)
 {
 	char delimiter = '/'; 
 	// find last occurance of "/" to get longest match 
 	size_t pos = url.find_last_of(delimiter); 
 	if (pos != 0 && pos != std::string::npos) {
 		std::string sub_url = url.substr(0, pos);
-		if (addrmap.find(sub_url) != addrmap.end()) {
-			args = addrmap.at(sub_url);
+		if (dispatcher.find(sub_url) != dispatcher.end()) {
+			location = sub_url;
 			return true;
 		}
 		else { // current prefix not found, recursively find shorter prefixes
-			return search_addr_binding(url.substr(0, pos), args);
+			return search_addr_binding(url.substr(0, pos), location);
 		}
 	} else if (pos == 0) { // matched with beginning "/"
-		if (addrmap.find("/") != addrmap.end()) {
-			args = addrmap.at("/");
+		if (dispatcher.find("/") != dispatcher.end()) {
+			location = "/";
 			return true;
 		}
 		return false;
@@ -129,39 +114,38 @@ bool session::search_addr_binding(std::string url, config_arg& args)
 	}
 }
 
-request_handler* create_handler(http::request<http::string_body>& req, bool valid, config_arg arg) {
-    INFO << "Invoke " << arg.handler_type << " and serve at location " << arg.location << "\n";
-    if (arg.handler_type == "StaticHandler")
-        return new request_handler_static(req, valid);
-    if (arg.handler_type == "EchoHandler")
-        return new request_handler_echo(req, valid);
-    return new request_handler_not_found(req, valid);
+
+http::response<http::string_body> session::generate_response(char* request_data, int data_len)
+{
+	std::string location;
+	http::request<http::string_body> request;
+	http::response<http::string_body> response;
+	
+	if (parse_request(request_data, data_len, request)) {
+		std::string target_url = std::string(request.target());
+		target_url.append("/");
+		if(search_addr_binding(target_url, location))
+		{
+			request_handler_ = dispatcher[location];
+			request_handler_ -> set_client_ip(client_ip_);
+
+			if(request_handler_ -> handle_request(request, response))
+				INFO << "Successfully handled the request, return response to client " << client_ip_ << "\n";
+			else
+				INFO << "Something went wrong when handling the request, return response to client " << client_ip_ << "\n";
+			return response;
+		}
+	}
+
+	response.result(http::status::bad_request);
+	return response;
 }
 
 // get the reply from http request
 std::string session::get_reply(char* request_data, int data_len)
 {
-	config_arg args;
-	http::request<http::string_body> request;
-	http::response<http::string_body> response;
 
-	bool valid = parse_request(request_data, data_len, request);
-	
-	if (valid) {
-		std::string target_url = std::string(request.target());
-		target_url.append("/");
-		valid = search_addr_binding(target_url, args);
-	}
-
-	request_handler_ = create_handler(request, valid, args);
-	request_handler_ -> set_client_ip(client_ip_);
-	request_handler_ -> set_prefix(args.location);	
-	request_handler_ -> set_dir(args.root); 
-
-	request_handler_ -> handle_request(request, response);
-
-	delete request_handler_;
-	request_handler_ = NULL;
+	http::response<http::string_body> response = generate_response(request_data, data_len);
 
 	std::ostringstream oss;
     oss << response;

@@ -8,7 +8,6 @@
 #include <boost/beast/http.hpp>
 
 #include "request_handler.h"
-#include "config_arg.h"
 
 using boost::asio::ip::tcp;
 namespace http = boost::beast::http;
@@ -16,7 +15,7 @@ namespace http = boost::beast::http;
 class session
 {
 	public:
-		session(boost::asio::io_service& io_service, std::map<std::string, config_arg> addrmap);
+		session(boost::asio::io_service& io_service, std::map<std::string, request_handler*> dispatcher);
 
 		tcp::socket& socket();
 
@@ -34,6 +33,7 @@ class session
 
 		// get the reply from http request
 		std::string get_reply(char* request_data, int data_len);
+		http::response<http::string_body> generate_response(char* request_data, int data_len);
 
 	private:
 		std::string client_ip_;
@@ -43,14 +43,14 @@ class session
 		char in_data_[max_length];
 
 		request_handler* request_handler_;
-		std::map<std::string, config_arg>  addrmap;
+		std::map<std::string, request_handler*> dispatcher;
 
 		/* parse the request and construct a request, return whether request is valid */
 		bool parse_request(char* request_data, int data_len, http::request<http::string_body>& request);
 
 		/* search the location-root binding recursively in addrmap constructed by config parser, 
 			return if found or not */
-		bool search_addr_binding(std::string location, config_arg& args);
+		bool search_addr_binding(std::string url, std::string& location);
 };
 
 #endif  // SESSION_H

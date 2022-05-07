@@ -10,7 +10,7 @@ class request_handler_echo: public request_handler
 
     public:
         using request_handler::request_handler;
-        void handle_request(http::request<http::string_body> request, http::response<http::string_body>& response);
+        bool handle_request(http::request<http::string_body> request, http::response<http::string_body>& response);
 
 };
 

@@ -1,5 +1,2 @@
 HTTP/1.1 400 Bad Request
-Content-Type: text/html
-Content-Length: 89
 
-<html><head><title>Bad Request</title></head><body><h1>400 Bad Request</h1></body></html>
