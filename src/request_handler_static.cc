@@ -8,7 +8,7 @@
 
 namespace http = boost::beast::http;
 
-bool request_handler_static::handle_request(http::request<http::string_body> request, http::response<http::string_body>& response)
+status request_handler_static::handle_request(http::request<http::string_body> request, http::response<http::string_body>& response)
 {
     INFO << ": Using static request handler\n";
 

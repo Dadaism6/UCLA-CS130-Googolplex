@@ -3,7 +3,7 @@
 
 namespace http = boost::beast::http;
 
-bool request_handler_not_found::handle_request(http::request<http::string_body> request, http::response<http::string_body>& response)
+status request_handler_not_found::handle_request(http::request<http::string_body> request, http::response<http::string_body>& response)
 {
 	INFO << get_client_ip() << ": Using not_found request handler\n";
 	response.set(http::field::content_type, "text/html");

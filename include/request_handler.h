@@ -9,11 +9,13 @@
 
 namespace http = boost::beast::http;
 
+typedef bool status;
+
 class request_handler 
 {
     public:
         request_handler(std::string location, std::string root) {prefix_ = location; dir_ = root; }
-        virtual bool handle_request(http::request<http::string_body> request, http::response<http::string_body>& response) = 0;
+        virtual status handle_request(http::request<http::string_body> request, http::response<http::string_body>& response) = 0;
 
         std::string get_prefix() {return prefix_; }
         std::string get_dir() {return dir_; }
