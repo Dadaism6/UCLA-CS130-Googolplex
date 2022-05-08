@@ -23,11 +23,11 @@ steps:
     '-t', 'gcr.io/$PROJECT_ID/googolplex:latest',
     '.'
   ]
-- name: 'gcr.io/cloud-builders/docker'
-  args: [
-    'build',
-    '-f', 'docker/coverage.Dockerfile',
-    '-t', 'gcr.io/$PROJECT_ID/googolplex:coverage',
-    '.'
-]
+# - name: 'gcr.io/cloud-builders/docker'
+#   args: [
+#     'build',
+#     '-f', 'docker/coverage.Dockerfile',
+#     '-t', 'gcr.io/$PROJECT_ID/googolplex:coverage',
+#     '.'
+# ]
 images: ['gcr.io/$PROJECT_ID/googolplex:base', 'gcr.io/$PROJECT_ID/googolplex:latest']
