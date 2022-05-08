@@ -18,6 +18,10 @@ bool request_handler_static::handle_request(http::request<http::string_body> req
     // and the string of location is smaller than the url, this is a valid path
     if (pos != std::string::npos && pos == 0 && request.target().length() > prefix.length()) {
         std::string path = get_dir() + "/" + std::string(request.target().substr(prefix.length()));
+        // remove trailing slash
+        while(path.length() >= 1 && path[path.length()-1] == '/') {
+            path.pop_back();
+        }
         INFO << get_client_ip() << ": Static request: trying to find: " << path << "\n";
         
         std::ifstream file(path, std::ios::binary);

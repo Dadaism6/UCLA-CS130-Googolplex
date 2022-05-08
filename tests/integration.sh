@@ -145,6 +145,20 @@ else
     exit 1
 fi
 
+#Test 4.7 trailing slashes
+sleep 0.5
+curl localhost:80/static1/expected.txt/ > ./tmp.txt
+sleep 0.5
+echo "Compare the result"
+if cmp -s ../static/static1/expected.txt ./tmp.txt ; then
+    rm ./tmp.txt
+    echo -e "Test 4.7 (trailing slashes) pass"
+else
+    rm ./tmp.txt
+    echo -e "Test 4.2 (trailing slashes) fail - content not same"
+    exit 1
+fi
+
 #Test 5: 404 Handler
 echo "Test5: 404 Handler"
 sleep 0.5
