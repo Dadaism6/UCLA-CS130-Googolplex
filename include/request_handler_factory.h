@@ -16,10 +16,29 @@ class RequestHandlerFactory
 {
     public:
         RequestHandlerFactory(config_arg arg);
-        request_handler* create();
-
-    private:
+        virtual request_handler* create() = 0;
         config_arg arg;
+};
+
+class EchoHandlerFactory : public RequestHandlerFactory
+{
+    public:
+        EchoHandlerFactory(config_arg arg);
+        request_handler* create();
+};
+
+class StaticHandlerFactory : public RequestHandlerFactory
+{
+    public:
+        StaticHandlerFactory(config_arg arg);
+        request_handler* create();
+};
+
+class NotFoundHandlerFactory : public RequestHandlerFactory
+{
+    public:
+        NotFoundHandlerFactory(config_arg arg);
+        request_handler* create();
 };
 
 #endif  // HANDLER_FACTORY_H

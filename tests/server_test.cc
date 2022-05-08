@@ -27,7 +27,23 @@ class ServerTest:public::testing::Test
             config_arg test_arg;
             test_arg.location = "/";
             test_arg.root = "";
-            routes["/"] = new RequestHandlerFactory(test_arg);
+            routes["/"] = new NotFoundHandlerFactory(test_arg);
+
+            config_arg echo_arg;
+            echo_arg.location = "/echo";
+            echo_arg.root = "";
+            echo_arg.handler_type = "EchoHandler";
+            config_arg static_arg;
+            static_arg.location = "/static";
+            static_arg.root = "";
+            static_arg.handler_type = "StaticHandler";
+            config_arg not_found_arg;
+            not_found_arg.location = "/";
+            not_found_arg.root = "";
+            not_found_arg.handler_type = "404Handler";
+            addrmap_factory["/echo"] = echo_arg;
+            addrmap_factory["/static"] = static_arg;
+            addrmap_factory["/"] = not_found_arg;
         }
         ~ServerTest() {
             for (auto const& x : routes) {
@@ -42,6 +58,7 @@ class ServerTest:public::testing::Test
         short port = 8080;
         bool status;
         std::map<std::string, config_arg> addrmap;
+        std::map<std::string, config_arg> addrmap_factory;
         std::map<std::string, RequestHandlerFactory*> routes;
 };
 
@@ -81,5 +98,12 @@ TEST_F(ServerTest, HandleAccept_2) {
     MockServer s(io_service, port, addrmap);
     MockSession* mock_session = new MockSession(io_service, routes);
     status = s.handle_accept(mock_session, bad_ec);
+    EXPECT_TRUE(status);
+}
+
+// Test dispatcher
+TEST_F(ServerTest, Factory) {
+    MockServer s(io_service, port, addrmap_factory);
+    status = s.create_dispatcher(addrmap_factory);
     EXPECT_TRUE(status);
 }

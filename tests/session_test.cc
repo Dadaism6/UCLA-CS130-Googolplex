@@ -31,9 +31,9 @@ class SessionTest:public::testing::Test
             not_found_arg.location = "/";
             not_found_arg.root = "";
             not_found_arg.handler_type = "404Handler";
-            routes["/echo"] = new RequestHandlerFactory(echo_arg);
-            routes["/static"] = new RequestHandlerFactory(static_arg);
-            routes["/"] = new RequestHandlerFactory(not_found_arg);
+            routes["/echo"] = new EchoHandlerFactory(echo_arg);
+            routes["/static"] = new StaticHandlerFactory(static_arg);
+            routes["/"] = new NotFoundHandlerFactory(not_found_arg);
         }
 
         ~SessionTest() {

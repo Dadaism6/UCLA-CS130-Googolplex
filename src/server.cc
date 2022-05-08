@@ -52,9 +52,17 @@ bool server::handle_accept(session* new_session,
     return (new_session == nullptr);
 }
 
-void server::create_dispatcher(std::map<std::string, config_arg> addrmap) 
+bool server::create_dispatcher(std::map<std::string, config_arg> addrmap) 
 {
     for (auto const& mapping : addrmap) {
-        routes[mapping.first] = new RequestHandlerFactory(mapping.second);
+        config_arg curr_handler = mapping.second;
+        std::string handler_type = mapping.second.handler_type;
+        if (handler_type == "StaticHandler")
+            routes[mapping.first] = new StaticHandlerFactory(curr_handler);
+        else if (handler_type == "EchoHandler")
+            routes[mapping.first] = new EchoHandlerFactory(curr_handler);
+        else
+            routes[mapping.first] = new NotFoundHandlerFactory(curr_handler);
     }
+    return true;
 }
