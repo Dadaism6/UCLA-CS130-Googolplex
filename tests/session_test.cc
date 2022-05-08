@@ -2,8 +2,8 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 #include "session.h"
+#include <memory>
 
-#include "request_handler.h"
 #include "request_handler_echo.h"
 #include "request_handler_static.h"
 #include "request_handler_not_found.h"
@@ -31,16 +31,9 @@ class SessionTest:public::testing::Test
             not_found_arg.location = "/";
             not_found_arg.root = "";
             not_found_arg.handler_type = "404Handler";
-            routes["/echo"] = new EchoHandlerFactory(echo_arg);
-            routes["/static"] = new StaticHandlerFactory(static_arg);
-            routes["/"] = new NotFoundHandlerFactory(not_found_arg);
-        }
-
-        ~SessionTest() {
-            for (auto const& x : routes) {
-                if (x.second != NULL)
-                    delete x.second;
-            }
+            routes["/echo"] = std::shared_ptr<EchoHandlerFactory>(new EchoHandlerFactory(echo_arg));
+            routes["/static"] = std::shared_ptr<StaticHandlerFactory>(new StaticHandlerFactory(static_arg));
+            routes["/"] = std::shared_ptr<NotFoundHandlerFactory>(new NotFoundHandlerFactory(not_found_arg));
         }
 
     protected:
@@ -71,14 +64,14 @@ class SessionTest:public::testing::Test
 
         bool status;
         std::string rep_str;
-        std::map<std::string, RequestHandlerFactory*> routes;
+        std::map<std::string, std::shared_ptr<RequestHandlerFactory>> routes;
         boost::beast::http::response<boost::beast::http::string_body> rep;
 };
 
 // gmock session class
 class MockSession: public session {
     public:
-        MockSession(boost::asio::io_service& io_service, std::map<std::string, RequestHandlerFactory*> routes) : session(io_service, routes) {}
+        MockSession(boost::asio::io_service& io_service, std::map<std::string, std::shared_ptr<RequestHandlerFactory>> routes) : session(io_service, routes) {}
         MOCK_METHOD0(start, void());
         MOCK_METHOD0(read, void());
         MOCK_METHOD0(recycle, void());

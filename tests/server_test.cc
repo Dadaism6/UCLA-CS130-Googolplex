@@ -4,16 +4,17 @@
 #include "server.h"
 #include "gmock/gmock.h"
 
-#include "request_handler.h"
 #include "request_handler_factory.h"
 #include "request_handler_not_found.h"
+
+#include <memory>
 
 using ::testing::AtLeast;
 using ::testing::_;
 
 class MockSessionReal : public session {
   public:
-    MockSessionReal(boost::asio::io_service& io_service, std::map<std::string, RequestHandlerFactory*> routes) : session(io_service, routes) {}
+    MockSessionReal(boost::asio::io_service& io_service, std::map<std::string, std::shared_ptr<RequestHandlerFactory>> routes) : session(io_service, routes) {}
     MOCK_METHOD2(handle_read, bool(const boost::system::error_code&,
 			size_t));
     MOCK_METHOD1(handle_write, bool(const boost::system::error_code&));
@@ -27,7 +28,7 @@ class ServerTest:public::testing::Test
             config_arg test_arg;
             test_arg.location = "/";
             test_arg.root = "";
-            routes["/"] = new NotFoundHandlerFactory(test_arg);
+            routes["/"] = std::shared_ptr<NotFoundHandlerFactory>(new NotFoundHandlerFactory(test_arg));
 
             config_arg echo_arg;
             echo_arg.location = "/echo";
@@ -45,12 +46,7 @@ class ServerTest:public::testing::Test
             addrmap_factory["/static"] = static_arg;
             addrmap_factory["/"] = not_found_arg;
         }
-        ~ServerTest() {
-            for (auto const& x : routes) {
-                if (x.second != NULL)
-                    delete x.second;
-            }
-        }
+
     protected:
         boost::asio::io_service io_service;
         boost::system::error_code success_ec = boost::system::errc::make_error_code(boost::system::errc::success);
@@ -59,7 +55,7 @@ class ServerTest:public::testing::Test
         bool status;
         std::map<std::string, config_arg> addrmap;
         std::map<std::string, config_arg> addrmap_factory;
-        std::map<std::string, RequestHandlerFactory*> routes;
+        std::map<std::string, std::shared_ptr<RequestHandlerFactory>> routes;
 };
 
 class MockServer: public server {

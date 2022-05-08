@@ -5,6 +5,7 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <map>
+#include <memory>
 #include "session.h"
 #include "request_handler.h"
 #include "config_arg.h"
@@ -23,7 +24,7 @@ class server
 	private:
 		boost::asio::io_service& io_service_;
 		tcp::acceptor acceptor_;
-		std::map<std::string, RequestHandlerFactory*> routes;
+		std::map<std::string, std::shared_ptr<RequestHandlerFactory>> routes;
 };
 
 #endif  // SERVER_H

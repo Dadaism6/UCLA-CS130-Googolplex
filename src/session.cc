@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
@@ -12,7 +13,7 @@ using boost::asio::ip::tcp;
 
 namespace http = boost::beast::http;
 
-session::session(boost::asio::io_service& io_service, std::map<std::string, RequestHandlerFactory*> routes) : socket_(io_service), routes(routes)
+session::session(boost::asio::io_service& io_service, std::map<std::string, std::shared_ptr<RequestHandlerFactory>> routes) : socket_(io_service), routes(routes)
 {
 	memset(in_data_, 0, max_length);
 }

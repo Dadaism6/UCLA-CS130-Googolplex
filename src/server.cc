@@ -2,6 +2,7 @@
 #include <iostream>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
+#include <memory>
 
 #include "server.h"
 #include "request_handler.h"
@@ -20,11 +21,7 @@ server::server(boost::asio::io_service& io_service, short port, std::map<std::st
 
 server::~server()
 {
-    INFO << "Server shut down perform clean up" << "\n";
-    for (auto const& route : routes) {
-        delete (route.second);
-    }
-    INFO << "Server clean up completes" << "\n";
+    INFO << "Server shuts down" << "\n";
 }
 
 void server::start_accept()
@@ -58,11 +55,11 @@ bool server::create_dispatcher(std::map<std::string, config_arg> addrmap)
         config_arg curr_handler = mapping.second;
         std::string handler_type = mapping.second.handler_type;
         if (handler_type == "StaticHandler")
-            routes[mapping.first] = new StaticHandlerFactory(curr_handler);
+            routes[mapping.first] = std::shared_ptr<StaticHandlerFactory>(new StaticHandlerFactory(curr_handler));
         else if (handler_type == "EchoHandler")
-            routes[mapping.first] = new EchoHandlerFactory(curr_handler);
+            routes[mapping.first] = std::shared_ptr<EchoHandlerFactory>(new EchoHandlerFactory(curr_handler));
         else
-            routes[mapping.first] = new NotFoundHandlerFactory(curr_handler);
+            routes[mapping.first] = std::shared_ptr<NotFoundHandlerFactory>(new NotFoundHandlerFactory(curr_handler));
     }
     return true;
 }

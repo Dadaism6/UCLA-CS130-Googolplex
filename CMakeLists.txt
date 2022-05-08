@@ -39,27 +39,25 @@ add_library(session src/session.cc src/log.cc)
 add_library(server_src src/server.cc src/session.cc src/log.cc)
 add_library(config_parser src/config_parser.cc src/log.cc)
 add_library(logger src/log.cc)
-add_library(request_handler src/request_handler_echo.cc src/request_handler_static.cc src/request_handler_not_found.cc src/log.cc)
-add_library(content_type src/content_type.cc)
-add_library(request_handler_factory src/request_handler_factory.cc src/request_handler_echo.cc src/request_handler_static.cc src/request_handler_not_found.cc src/log.cc)
+add_library(request_handler src/request_handler_factory.cc src/request_handler_echo.cc src/request_handler_static.cc src/request_handler_not_found.cc  src/content_type.cc src/log.cc)
 
 # Update executable name, srcs, and deps, remember to add new 
 # libraries to target_link_libraries
 add_executable(webserver src/server_main.cc)
-target_link_libraries(webserver logger session server_src config_parser request_handler request_handler_factory content_type pthread Boost::system Boost::filesystem Boost::log_setup Boost::log)
+target_link_libraries(webserver logger server_src config_parser request_handler pthread Boost::system Boost::filesystem Boost::log_setup Boost::log)
 
 # Update test executable name, srcs, and deps
 add_executable(config_parser_test tests/config_parser_test.cc)
 target_link_libraries(config_parser_test logger config_parser gtest_main Boost::system Boost::filesystem Boost::log_setup Boost::log)
 
 add_executable(server_test tests/server_test.cc)
-target_link_libraries(server_test logger server_src request_handler request_handler_factory content_type gtest_main gmock_main Boost::filesystem Boost::system Boost::log_setup Boost::log)
+target_link_libraries(server_test logger server_src session request_handler gtest_main gmock_main Boost::filesystem Boost::system Boost::log_setup Boost::log)
 
 add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test logger session request_handler request_handler_factory content_type gtest_main gmock_main Boost::filesystem Boost::system Boost::log_setup Boost::log)
+target_link_libraries(session_test logger session request_handler gtest_main gmock_main Boost::filesystem Boost::system Boost::log_setup Boost::log)
 
 add_executable(request_handler_test tests/request_handler_test.cc)
-target_link_libraries(request_handler_test logger request_handler content_type gtest_main Boost::filesystem Boost::log_setup Boost::log)
+target_link_libraries(request_handler_test logger request_handler gtest_main Boost::filesystem Boost::log_setup Boost::log)
 
 # Update with test binary
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
@@ -71,4 +69,4 @@ add_test(NAME ServerIntegrationTest COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tes
 
 # Update with target/test targets
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS session server_src config_parser request_handler request_handler_factory content_type TESTS config_parser_test server_test session_test request_handler_test)
+generate_coverage_report(TARGETS session server_src config_parser request_handler TESTS config_parser_test server_test session_test request_handler_test)

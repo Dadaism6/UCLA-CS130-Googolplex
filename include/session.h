@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 #include <map>
+#include <memory>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/beast/http.hpp>
@@ -16,7 +17,7 @@ namespace http = boost::beast::http;
 class session
 {
 	public:
-		session(boost::asio::io_service& io_service, std::map<std::string, RequestHandlerFactory*> routes);
+		session(boost::asio::io_service& io_service, std::map<std::string, std::shared_ptr<RequestHandlerFactory>> routes);
 
 		tcp::socket& socket();
 
@@ -44,7 +45,7 @@ class session
 		char in_data_[max_length];
 
 		request_handler* request_handler_;
-		std::map<std::string, RequestHandlerFactory*> routes;
+		std::map<std::string, std::shared_ptr<RequestHandlerFactory>> routes;
 
 		/* parse the request and construct a request, return whether request is valid */
 		bool parse_request(char* request_data, int data_len, http::request<http::string_body>& request);

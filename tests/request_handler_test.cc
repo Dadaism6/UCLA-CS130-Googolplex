@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include "gtest/gtest.h"
 #include "config_arg.h"
-#include "request_handler.h"
 #include "request_handler_echo.h"
 #include "request_handler_static.h"
 #include "request_handler_not_found.h"
