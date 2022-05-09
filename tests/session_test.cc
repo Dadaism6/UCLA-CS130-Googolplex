@@ -1,13 +1,13 @@
-#include <map>
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 #include "session.h"
-#include <memory>
-
 #include "request_handler_echo.h"
 #include "request_handler_static.h"
 #include "request_handler_not_found.h"
 #include "request_handler_factory.h"
+
+#include <map>
+#include <memory>
 
 using ::testing::AtLeast;    
 using ::testing::_;

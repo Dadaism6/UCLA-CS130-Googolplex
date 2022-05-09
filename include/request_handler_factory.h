@@ -3,7 +3,6 @@
 
 #include "request_handler.h"
 #include "config_arg.h"
-#include "log.h"
 
 enum HandlerType 
 {

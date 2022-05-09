@@ -1,12 +1,7 @@
-#include <iostream>
-#include <memory>
-#include <boost/bind.hpp>
-#include <boost/asio.hpp>
-#include <boost/beast/core/buffers_to_string.hpp>
-
 #include "session.h"
 #include "log.h"
-#include "request_handler.h"
+
+#include <boost/beast/core/buffers_to_string.hpp>
 
 
 using boost::asio::ip::tcp;

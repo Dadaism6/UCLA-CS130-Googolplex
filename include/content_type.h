@@ -1,7 +1,6 @@
 #ifndef CONTENT_TYPE_H
 #define CONTENT_TYPE_H
 
-
 #include <string>
 #include <map>
 

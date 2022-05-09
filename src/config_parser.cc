@@ -6,18 +6,14 @@
 //
 // How Nginx does it:
 //   http://lxr.nginx.org/source/src/core/ngx_conf_file.c
-#include <cstdio>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <stack>
-#include <string>
-#include <vector>
-#include <stdexcept> 
-#include <map>
 #include "config_parser.h"
 #include "log.h"
 #include "config_arg.h"
+
+#include <cstdio>
+#include <fstream>
+#include <stack>
+#include <stdexcept> 
 
 int safeportSTOI(std::string stringnumber) {
 	int result = -1;

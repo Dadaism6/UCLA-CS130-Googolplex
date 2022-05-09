@@ -1,15 +1,15 @@
 #ifndef SESSION_H
 #define SESSION_H
 
+#include "request_handler.h"
+#include "request_handler_factory.h"
+
 #include <cstdlib>
 #include <map>
 #include <memory>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/beast/http.hpp>
-
-#include "request_handler.h"
-#include "request_handler_factory.h"
 
 using boost::asio::ip::tcp;
 namespace http = boost::beast::http;

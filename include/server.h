@@ -1,14 +1,15 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include "session.h"
+#include "request_handler.h"
+#include "config_arg.h"
+
 #include <cstdlib>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <map>
 #include <memory>
-#include "session.h"
-#include "request_handler.h"
-#include "config_arg.h"
 
 using boost::asio::ip::tcp;
 

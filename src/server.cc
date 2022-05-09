@@ -1,12 +1,6 @@
-#include <cstdlib>
-#include <iostream>
-#include <boost/bind.hpp>
-#include <boost/asio.hpp>
-#include <memory>
-
 #include "server.h"
-#include "request_handler.h"
 #include "log.h"
+
 using boost::asio::ip::tcp;
 
 

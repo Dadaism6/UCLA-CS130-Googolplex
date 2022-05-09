@@ -1,10 +1,9 @@
-#include <fstream>
-#include <iostream>
-#include <boost/filesystem/path.hpp>
-
 #include "request_handler_static.h"
 #include "log.h"
 #include "content_type.h"
+
+#include <fstream>
+#include <boost/filesystem/path.hpp>
 
 namespace http = boost::beast::http;
 

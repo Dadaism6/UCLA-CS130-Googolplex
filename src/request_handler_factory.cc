@@ -2,6 +2,7 @@
 #include "request_handler_echo.h"
 #include "request_handler_static.h"
 #include "request_handler_not_found.h"
+#include "log.h"
 
 RequestHandlerFactory::RequestHandlerFactory(config_arg arg) : arg(arg) 
 {

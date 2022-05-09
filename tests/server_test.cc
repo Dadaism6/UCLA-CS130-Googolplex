@@ -1,12 +1,10 @@
-#include <map>
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 #include "server.h"
-#include "gmock/gmock.h"
-
 #include "request_handler_factory.h"
 #include "request_handler_not_found.h"
 
+#include <map>
 #include <memory>
 
 using ::testing::AtLeast;

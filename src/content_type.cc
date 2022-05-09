@@ -1,6 +1,4 @@
 #include "content_type.h"
-#include <map>
-#include <string>
 
 content_type content_type::get_content_type(std::string extension)
 {

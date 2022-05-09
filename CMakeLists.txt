@@ -35,29 +35,29 @@ message(STATUS "Boost version: ${Boost_VERSION}")
 include_directories(include)
 
 # Update name and srcs whenever new source files are added
-add_library(session src/session.cc src/log.cc)
-add_library(server_src src/server.cc src/session.cc src/log.cc)
-add_library(config_parser src/config_parser.cc src/log.cc)
+add_library(session src/session.cc)
+add_library(server_src src/server.cc)
+add_library(config_parser src/config_parser.cc)
 add_library(logger src/log.cc)
-add_library(request_handler src/request_handler_factory.cc src/request_handler_echo.cc src/request_handler_static.cc src/request_handler_not_found.cc  src/content_type.cc src/log.cc)
+add_library(request_handler src/request_handler_factory.cc src/request_handler_echo.cc src/request_handler_static.cc src/request_handler_not_found.cc src/content_type.cc)
 
 # Update executable name, srcs, and deps, remember to add new 
 # libraries to target_link_libraries
 add_executable(webserver src/server_main.cc)
-target_link_libraries(webserver logger server_src config_parser request_handler pthread Boost::system Boost::filesystem Boost::log_setup Boost::log)
+target_link_libraries(webserver server_src session config_parser request_handler logger pthread Boost::system Boost::filesystem Boost::log_setup Boost::log)
 
 # Update test executable name, srcs, and deps
 add_executable(config_parser_test tests/config_parser_test.cc)
-target_link_libraries(config_parser_test logger config_parser gtest_main Boost::system Boost::filesystem Boost::log_setup Boost::log)
+target_link_libraries(config_parser_test config_parser logger gtest_main Boost::system Boost::filesystem Boost::log_setup Boost::log)
 
 add_executable(server_test tests/server_test.cc)
-target_link_libraries(server_test logger server_src session request_handler gtest_main gmock_main Boost::filesystem Boost::system Boost::log_setup Boost::log)
+target_link_libraries(server_test server_src session request_handler logger gtest_main gmock_main Boost::filesystem Boost::system Boost::log_setup Boost::log)
 
 add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test logger session request_handler gtest_main gmock_main Boost::filesystem Boost::system Boost::log_setup Boost::log)
+target_link_libraries(session_test session request_handler logger gtest_main gmock_main Boost::filesystem Boost::system Boost::log_setup Boost::log)
 
 add_executable(request_handler_test tests/request_handler_test.cc)
-target_link_libraries(request_handler_test logger request_handler gtest_main Boost::filesystem Boost::log_setup Boost::log)
+target_link_libraries(request_handler_test request_handler logger gtest_main Boost::filesystem Boost::log_setup Boost::log)
 
 # Update with test binary
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)

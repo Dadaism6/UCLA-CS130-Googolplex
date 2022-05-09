@@ -1,7 +1,6 @@
 #ifndef REQUEST_HANDLER_H
 #define REQUEST_HANDLER_H
 
-
 #include <cstdlib>
 #include <map>
 #include <boost/beast/http.hpp>

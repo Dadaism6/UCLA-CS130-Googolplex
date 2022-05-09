@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "config_parser.h"
+
 #include <map>
 
 class NginxConfigParserTest:public::testing::Test //Test fixture class, to initialize needed variable

@@ -7,16 +7,13 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
-#include <cstdlib>
-#include <iostream>
-#include <csignal>
-#include <boost/bind.hpp>
-#include <boost/asio.hpp>
-#include <map>
 #include "server.h"
 #include "session.h"
 #include "config_parser.h"
 #include "log.h"
+
+#include <csignal>
+#include <map>
 
 
 using boost::asio::ip::tcp;
