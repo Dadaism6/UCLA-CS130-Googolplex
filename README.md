@@ -191,7 +191,7 @@ bool server::create_dispatcher(std::map<std::string, config_arg> addrmap)
 This file defines a **session** class
 The **session** class is in charge of recursively handling reads and writes from the socket. Its constructor receives io service and the routes mapping created in the server class.
 ```cpp
-session(boost::asio::io_service& io_service, std::map<std::string, RequestHandlerFactory*> routes);
+session(boost::asio::io_service& io_service, std::map<std::string, std::shared_ptr<RequestHandlerFactory>> routes);
 ```
 When reading a new piece of data from the socket, the session calls the **handle_read()** function, with the error code and number of bytes transfered. 
 ```cpp
@@ -220,7 +220,7 @@ config_parser.Parse(argv[1], &config, &port, &addrmap);
 ```
 The **config_parser** will read through the config file, and insert the location-config pair into the addrmap
 ```cpp
-std::map<std::string, config_arg>* addrmap
+std::map<std::string, config_arg>  addrmap;
 ```
 As said above, **config_arg** is defined in **config_arg.h**, which contains 
 ```cpp
