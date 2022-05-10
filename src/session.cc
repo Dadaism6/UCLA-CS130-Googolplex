@@ -74,11 +74,13 @@ bool session::parse_request(char* request_data, int data_len, http::request<http
 	if (data_len < 0 || data_len > max_length || request_data == nullptr) 
 		return false;
 	boost::beast::error_code ec;
-	http::request_parser<http::string_body> p;
-	p.put(boost::asio::buffer(std::string(request_data)), ec);
-	if (ec) 
-		return false;
-	request = p.release();
+	http::request_parser<http::string_body> parser;
+	// set eager as true so that request body is also parsed
+	parser.eager(true);
+	// parse request
+	size_t n = parser.put(boost::asio::buffer(std::string(request_data)), ec);
+	if (ec) return false;
+	request = parser.release();
 	return true;
 }
 

@@ -36,7 +36,7 @@ if cmp -s ../static/static1/expected_bad.txt ./tmp2.txt ; then
     rm ./tmp2.txt
     echo -e "Test 2 pass"
 else
-    # rm ./tmp2.txt
+    rm ./tmp2.txt
     echo -e "Test 2 fail - content not same"
     exit 1
 fi
