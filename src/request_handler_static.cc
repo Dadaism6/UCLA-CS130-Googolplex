@@ -9,7 +9,7 @@ namespace http = boost::beast::http;
 
 status request_handler_static::handle_request(http::request<http::string_body> request, http::response<http::string_body>& response)
 {
-    INFO << ": Using static request handler\n";
+    INFO << get_client_ip() << ": Using static request handler\n";
 
     std::string prefix = get_prefix() + "/";
     size_t pos = request.target().find(prefix);

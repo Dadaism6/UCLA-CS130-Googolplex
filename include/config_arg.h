@@ -9,6 +9,8 @@ struct config_arg {
     std::string location = "";
     std::string root = "";
 
-    std::set<std::string> valid_handler_types = {"StaticHandler", "EchoHandler", "NotFoundHandler"};
+    std::set<std::string> valid_handler_types = {
+        "StaticHandler", "EchoHandler", "NotFoundHandler", "CrudHandler"
+    };
 };
 #endif // CONFIG_ARG_H
