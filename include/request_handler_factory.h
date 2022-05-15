@@ -8,7 +8,8 @@ enum HandlerType
 {
     Echo_Handler,
     Static_Handler,
-    Not_Found_Handler
+    Not_Found_Handler,
+    Crud_Handler
 };
 
 class RequestHandlerFactory 
@@ -37,6 +38,13 @@ class NotFoundHandlerFactory : public RequestHandlerFactory
 {
     public:
         NotFoundHandlerFactory(config_arg arg);
+        request_handler* create();
+};
+
+class CrudHandlerFactory : public RequestHandlerFactory
+{
+    public:
+        CrudHandlerFactory(config_arg arg);
         request_handler* create();
 };
 

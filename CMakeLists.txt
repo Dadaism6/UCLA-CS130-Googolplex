@@ -39,7 +39,7 @@ add_library(session src/session.cc)
 add_library(server_src src/server.cc)
 add_library(config_parser src/config_parser.cc)
 add_library(logger src/log.cc)
-add_library(request_handler src/request_handler_factory.cc src/request_handler_echo.cc src/request_handler_static.cc src/request_handler_not_found.cc src/content_type.cc)
+add_library(request_handler src/request_handler_factory.cc src/request_handler_echo.cc src/request_handler_static.cc src/request_handler_not_found.cc src/request_handler_crud.cc src/content_type.cc)
 
 # Update executable name, srcs, and deps, remember to add new 
 # libraries to target_link_libraries

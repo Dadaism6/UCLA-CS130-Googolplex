@@ -2,6 +2,7 @@
 #include "request_handler_echo.h"
 #include "request_handler_static.h"
 #include "request_handler_not_found.h"
+#include "request_handler_crud.h"
 #include "log.h"
 
 RequestHandlerFactory::RequestHandlerFactory(config_arg arg) : arg(arg) 
@@ -14,6 +15,8 @@ EchoHandlerFactory::EchoHandlerFactory(config_arg arg) : RequestHandlerFactory(a
 StaticHandlerFactory::StaticHandlerFactory(config_arg arg) : RequestHandlerFactory(arg) {}
 
 NotFoundHandlerFactory::NotFoundHandlerFactory(config_arg arg) : RequestHandlerFactory(arg) {}
+
+CrudHandlerFactory::CrudHandlerFactory(config_arg arg) : RequestHandlerFactory(arg) {}
 
 // Utilize polymorphism for factory method creation
 request_handler* EchoHandlerFactory::create() 
@@ -29,4 +32,9 @@ request_handler* StaticHandlerFactory::create()
 request_handler* NotFoundHandlerFactory::create() 
 {
     return new request_handler_not_found(arg.location, arg.root);
+}
+
+request_handler* CrudHandlerFactory::create()
+{
+    return new request_handler_crud(arg.location, arg.root);
 }

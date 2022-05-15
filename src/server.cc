@@ -52,6 +52,8 @@ bool server::create_dispatcher(std::map<std::string, config_arg> addrmap)
             routes[mapping.first] = std::shared_ptr<StaticHandlerFactory>(new StaticHandlerFactory(curr_handler));
         else if (handler_type == "EchoHandler")
             routes[mapping.first] = std::shared_ptr<EchoHandlerFactory>(new EchoHandlerFactory(curr_handler));
+        else if (handler_type == "CrudHandler")
+            routes[mapping.first] = std::shared_ptr<CrudHandlerFactory>(new CrudHandlerFactory(curr_handler));
         else
             routes[mapping.first] = std::shared_ptr<NotFoundHandlerFactory>(new NotFoundHandlerFactory(curr_handler));
     }

@@ -251,7 +251,7 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, in
 						break;
 					}
 				}
-				else if((last_token_type == TOKEN_TYPE_NORMAL) && (lastoken.compare("root") == 0)){
+				else if((last_token_type == TOKEN_TYPE_NORMAL) && (lastoken.compare("root") == 0 || lastoken == "data_path")){
 					// std::string location = "/static";
 					// std::string config_type = "StaticHandler";
 					std::string location = "";
