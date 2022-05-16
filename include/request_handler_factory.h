@@ -3,6 +3,7 @@
 
 #include "request_handler.h"
 #include "config_arg.h"
+#include <vector>
 
 enum HandlerType 
 {
@@ -46,6 +47,8 @@ class CrudHandlerFactory : public RequestHandlerFactory
     public:
         CrudHandlerFactory(config_arg arg);
         request_handler* create();
+    private:
+        std::map<std::string, std::vector<int>> file_to_id;
 };
 
 #endif  // HANDLER_FACTORY_H

@@ -36,5 +36,5 @@ request_handler* NotFoundHandlerFactory::create()
 
 request_handler* CrudHandlerFactory::create()
 {
-    return new request_handler_crud(arg.location, arg.root);
+    return new request_handler_crud(arg.location, arg.root, file_to_id);
 }

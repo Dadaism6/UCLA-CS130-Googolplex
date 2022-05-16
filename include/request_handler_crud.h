@@ -14,8 +14,11 @@ namespace http = boost::beast::http;
 class request_handler_crud : public request_handler
 {
   public:
-    using request_handler::request_handler;
+    request_handler_crud(std::string location, std::string root, std::map<std::string, std::vector<int>>& file_to_id) 
+      : request_handler(location, root), file_to_id_(file_to_id) {}
     status handle_request(http::request<http::string_body> request, http::response<http::string_body>& response);
+  private:
+    std::map<std::string, std::vector<int>>& file_to_id_;
 };
 
 #endif // REQEUST_HANDLER_CRUD_H
