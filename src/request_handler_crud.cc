@@ -2,6 +2,7 @@
 #include "log.h"
 #include <fstream>
 #include <stdio.h>
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 
 status request_handler_crud::handle_request(http::request<http::string_body> request, http::response<http::string_body>& response)
@@ -82,10 +83,58 @@ status request_handler_crud::handle_request(http::request<http::string_body> req
 
             return false;
         }
-        case http::verb::get:
-            // TODO: handle GET request, (R)ead an entity or list all if body empty
-            // response.result(http::status::ok), etc.
-            break;
+        case http::verb::get: {
+            std::string prefix = get_prefix() + "/";
+            std::string target = std::string(request.target().substr(prefix.length()));
+            std::string path = get_dir() + "/" + target;
+            if (!(boost::filesystem::exists(path))) {
+                response.result(http::status::not_found);
+                response.set(http::field::content_type, "text/plain");
+                response.body() = "No file or directory found at " + target + "." + "\n";
+                response.prepare_payload();
+                ERROR << "CRUD GET request: File or directory " << path << " not found.";
+                return false;
+            }
+            if (boost::filesystem::is_directory(path)) {
+                std::size_t found = target.find_last_of("/");
+                std::string key = target.substr(0,found);
+                std::vector<int> ids = file_to_id_[key];
+                std::vector<std::string> ids_str;
+                // Convert ID vector of type int to type string
+                std::transform(ids.begin(), ids.end(), std::back_inserter(ids_str),
+                    [](const int& id) { return std::to_string(id); });
+                std::string id_list = boost::algorithm::join(ids_str, ",");
+                std::string formatted_list = "[" + id_list + "]\n";
+                response.result(http::status::ok);
+                response.set(http::field::content_type, "text/plain");
+                response.body() = "ID's at " + key + ": " + formatted_list + "\n";
+                response.prepare_payload();
+                INFO << "Sending list of IDs for GET request at " << path;
+                return false;
+            }
+            else {
+                std::ifstream file(path, std::ios::binary);
+                // read from file
+                if (file.good()) {
+                    INFO << "Reading data...\n";
+                    file.seekg(0, std::ios::end);
+                    std::string content;
+                    content.resize(file.tellg());
+                    file.seekg(0, std::ios::beg);
+                    file.read(&content[0], content.size());
+                    content += "\n";
+
+                    // if found the file, set response message
+                    response.result(http::status::ok);
+                    response.body() = content;
+                    response.prepare_payload();
+                    INFO << "CRUD GET request: Finish Setting Response\n";
+
+                    file.close();
+                    return true;
+                }
+            }
+        }
         case http::verb::put: {
             std::string prefix = get_prefix() + "/";
             size_t pos = request.target().find(prefix);
