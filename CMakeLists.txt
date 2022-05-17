@@ -59,14 +59,18 @@ target_link_libraries(session_test session request_handler logger gtest_main gmo
 add_executable(request_handler_test tests/request_handler_test.cc)
 target_link_libraries(request_handler_test request_handler logger gtest_main Boost::filesystem Boost::log_setup Boost::log)
 
+add_executable(crud_handler_test tests/crud_handler_test.cc)
+target_link_libraries(crud_handler_test request_handler logger gtest_main Boost::filesystem Boost::log_setup Boost::log Boost::system)
+
 # Update with test binary
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(request_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(crud_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_test(NAME ServerIntegrationTest COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration.sh)
 
 # Update with target/test targets
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS session server_src config_parser request_handler TESTS config_parser_test server_test session_test request_handler_test)
+generate_coverage_report(TARGETS session server_src config_parser request_handler TESTS config_parser_test server_test session_test request_handler_test crud_handler_test)
