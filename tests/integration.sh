@@ -168,9 +168,88 @@ echo "Compare the result"
 if cmp -s ../static/static1/not_found.html ./tmp_html ; then
     rm ./tmp_html
     echo -e "Test 5 pass"
-    exit 0
 else
     rm ./tmp_html
     echo -e "Test 5 fail - content not same"
+    exit 1
+fi
+
+#Test 6: CRUD Handler
+#Test 6.1: POST
+echo "Test6.1: POST"
+#For unknown reasons, CRUD requests only seem to function when the server is started from the build directory
+sleep 4
+cd ../build
+timeout 5s ./bin/webserver ../tests/config_files/config_t_crud &> /dev/null &
+cd ../tests
+sleep 0.3
+curl -v -X POST -H "application/json" -d "{'a': 1}" http://localhost/api/Shoes
+sleep 0.1
+echo "Compare the result"
+if cmp -s ../crud_data/Shoes/1 ../static/static1/crud_post.txt ; then
+    echo -e "Test 6.1 pass"
+    continue
+else
+    rm ../crud_data/Shoes/1
+    echo -e "Test 6.1 fail - content not same"
+    exit 1
+fi
+
+#Test 6.2: GET LIST
+echo "Test6.2: GET LIST"
+sleep 0.1
+curl -v http://localhost/api/Shoes | tr -d "\n" > ./tmp.txt
+sleep 0.1
+echo "Compare the result"
+if cmp -s ../static/static1/crud_list.txt ./tmp.txt ; then
+    rm ./tmp.txt
+    echo -e "Test 6.2 pass"
+else
+    rm ./tmp.txt
+    echo -e "Test 6.2 fail - content not same"
+    exit 1
+fi
+
+#Test 6.3: GET READ
+echo "Test6.3: GET READ"
+sleep 0.1
+curl -v -X GET http://localhost/api/Shoes/1 | tr -d "\n" > ./tmp.txt
+sleep 0.1
+echo "Compare the result"
+if cmp -s ../crud_data/Shoes/1 ./tmp.txt ; then
+    rm ./tmp.txt
+    echo -e "Test 6.3 pass"
+else
+    rm ./tmp.txt
+    echo -e "Test 6.3 fail - content not same"
+    exitd 1
+fi
+
+#Test 6.4: PUT
+echo "Test6.4: PUT"
+sleep 0.1
+curl -v -X PUT -d "It has been PUT!" http://localhost/api/Shoes/1
+sleep 0.1
+echo "Compare the result"
+if cmp -s ../crud_data/Shoes/1 ../static/static1/crud_put.txt ; then
+    echo -e "Test 6.4 pass"
+else
+    rm ../crud_data/Shoes/1
+    echo -e "Test 6.4 fail - content not same"
+    exit 1
+fi
+
+#Test 6.5: DELETE
+echo "Test6.5: DELETE"
+sleep 0.1
+curl -v -X DELETE http://localhost/api/Shoes/1
+sleep 0.1
+echo "Check for deletion"
+if ! test -f ../crud_data/Shoes/1 ; then
+    echo -e "Test 6.5 pass"
+    exit 0
+else
+    rm ../crud_data/Shoes/1
+    echo -e "Test 6.5 fail - file found"
     exit 1
 fi

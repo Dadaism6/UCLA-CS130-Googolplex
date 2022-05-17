@@ -298,22 +298,4 @@ status request_handler_crud::handle_request(http::request<http::string_body> req
             response.result(http::status::method_not_allowed);
             return false;
     }
-
-    // Temp code, just to test that the handler is actually being called.
-    // Remember to delete for finished product.
-    response.result(http::status::ok);
-    response.set(http::field::content_type, "text/html");
-    response.body() = "<!DOCTYPE html>"
-        "<html>"
-            "<head>"
-                "<title>CRUD success!</title>"
-            "</head>"
-            "<body>"
-                "<h1>Congrats!</h1>"
-                "<p>The CRUD handler was successfully created and called.</p>"
-            "</body>"
-        "</html>";
-    response.prepare_payload();
-
-    return true;
 }
