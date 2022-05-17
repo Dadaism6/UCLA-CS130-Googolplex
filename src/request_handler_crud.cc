@@ -69,7 +69,7 @@ status request_handler_crud::handle_request(http::request<http::string_body> req
                 INFO << get_client_ip() << "Created id " << std::to_string(value) << " for entity " << key << "\n";
                 //prepare response
                 response.result(http::status::created);
-                response.set(http::field::content_type, "text/html");
+                response.set(http::field::content_type, "text/plain");
                 response.body() = "Created entry at {\"id\":" + std::to_string(value) + "}" + "\n";
                 response.prepare_payload();
                 return true;
@@ -177,9 +177,73 @@ status request_handler_crud::handle_request(http::request<http::string_body> req
 
             return false;
         }
-        case http::verb::delete_:
-            // TODO: handle DELETE request, (D)elete entity from db
+        case http::verb::delete_: {
+            std::string prefix = get_prefix() + "/";
+            std::string target = std::string(request.target().substr(prefix.length()));
+            std::string path_str = get_dir() + "/" + target;
+            if (boost::filesystem::is_directory(path_str)) {
+                response.result(http::status::bad_request);
+                response.set(http::field::content_type, "text/plain");
+                response.body() = "Invalid format; expected a file ID.\n";
+                response.prepare_payload();
+                WARNING << "Warning: CRUD DELETE operations must specify a file ID";
+                return false;
+            }
+
+            std::size_t found = target.find_last_of("/");
+            std::string key = target.substr(0,found);
+            std::string value_str = target.substr(found+1,target.length());
+            int value;
+            try {
+                value = std::stoi(value_str);
+            } catch (const std::exception&) {
+                response.result(http::status::bad_request);
+                response.set(http::field::content_type, "text/plain");
+                response.body() = "Invalid format; expected a file ID.\n";
+                response.prepare_payload();
+                WARNING << "Warning: CRUD DELETE operations must specify a file ID";
+                return false;
+            }
+
+            INFO << "Incoming CRUD request to delete file: " << "/" << target;
+            const char* path = path_str.c_str();
+            if (boost::filesystem::exists(path_str)) {
+                if (file_to_id_.find(key) != file_to_id_.end()) {
+                    if (std::remove(path) == 0) {
+                        // Remove value from file:id mapping
+                        file_to_id_[key].erase(std::remove(file_to_id_[key].begin(), file_to_id_[key].end(), value), file_to_id_[key].end());
+                        response.result(http::status::ok);
+                        response.set(http::field::content_type, "text/plain");
+                        response.body() = "Successfully deleted file at /" + target + "." + "\n";
+                        response.prepare_payload();
+                        INFO << "Successfully deleted file at /" << target;
+                        return true;
+                    }
+                    else {
+                        response.result(http::status::internal_server_error);
+                        response.set(http::field::content_type, "text/plain");
+                        response.body() = "Error deleting file at /" + target + "." + "\n";
+                        ERROR << "CRUD request to delete file at /" << target << " failed";
+                    }
+                }
+                else {
+                    response.result(http::status::internal_server_error);
+                    response.set(http::field::content_type, "text/plain");
+                    response.body() = "Could not find file ID for /" + target + "." + "\n";
+                    ERROR << "CRUD request to delete file at /" << target << " failed; no file ID";
+                }
+            }
+            else {
+                response.result(http::status::not_found);
+                response.set(http::field::content_type, "text/plain");
+                response.body() = "No file found at /" + key + "." + "\n";
+                ERROR << "File not found.";
+            }
+            response.prepare_payload();
+
+            return false;
             break;
+        }
         default:
             // TODO: send 404/400/something, we didn't get a valid CRUD method
             response.result(http::status::method_not_allowed);
