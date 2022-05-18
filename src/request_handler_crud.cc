@@ -5,299 +5,318 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 
-status request_handler_crud::handle_request(http::request<http::string_body> request, http::response<http::string_body>& response)
+bool request_handler_crud::check_request_url(std::string url, std::string& key) {
+    std::string prefix = get_prefix() + "/";
+    size_t pos = url.find(prefix);
+    if (pos != std::string::npos && pos == 0 && url.length() > prefix.length()) {
+        key = std::string(url.substr(prefix.length()));
+        //remove trailing slash
+        while(key.length() >= 1 && key[key.length()-1] == '/') {
+            key.pop_back();
+        }
+        return true;
+    }
+    key = "";
+    return false;
+}
+
+bool request_handler_crud::write_to_file(std::string path, std::string content) {
+    if ( boost::filesystem::is_directory(path)) {
+        return false;
+    }
+    std::ostringstream oss;     
+    oss << content;
+    std::string body = oss.str();
+    oss.clear();
+    std::ofstream file(path);
+    file << body;
+    file.close();
+    return true;
+}
+
+bool request_handler_crud::read_from_file(std::string path, std::string& content) {
+    std::ifstream file(path, std::ios::binary);
+    // read from file
+    if (file.good()) {
+        INFO << get_client_ip() << ": reading data at path: " << path << " ...\n";
+        file.seekg(0, std::ios::end);
+        content.resize(file.tellg());
+        file.seekg(0, std::ios::beg);
+        file.read(&content[0], content.size());
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+bool request_handler_crud::create_dir(std::string path) {
+    if ( boost::filesystem::exists(path) && boost::filesystem::is_directory(path)) {
+        return true;
+    }
+    try {
+        boost::filesystem::create_directory(path);
+    } 
+    catch (const boost::filesystem::filesystem_error& e) {
+        INFO << get_client_ip() << ": unable to create directory for " << path << "\n";
+        return false;
+    }
+    INFO << get_client_ip() << ": created directory: " << path << "\n";
+    return true;
+}
+
+int request_handler_crud::get_next_id(std::string key) {
+    int lowest_available_id = 1;
+    //finds the lowest available id
+    if (file_to_id_.find(key) == file_to_id_.end()) {
+        std::vector<int> values = {1};
+        file_to_id_[key] = values;
+        return lowest_available_id;
+    }
+
+    for(int i=0; i<file_to_id_[key].size(); i++) {
+        if (file_to_id_[key][i] == lowest_available_id) {
+            lowest_available_id++;
+        }
+    }
+    insert_to_map(key, lowest_available_id);
+    return lowest_available_id;
+}
+
+bool request_handler_crud::insert_to_map(std::string key, int id) {
+    if (file_to_id_.find(key) != file_to_id_.end()) {
+        std::vector<int> id_names = file_to_id_[key]; 
+        if (std::find(id_names.begin(), id_names.end(), id) == id_names.end()) {
+            file_to_id_[key].push_back(id);
+            std::vector<int> values_copy = file_to_id_[key];
+            std::sort(values_copy.begin(), values_copy.end());
+            file_to_id_[key] = values_copy;
+            return true;
+        }
+    }
+    return false;
+}
+
+void request_handler_crud::prepare_created_response(int value, std::string entity, http::response<http::string_body>& response) {
+    response.result(http::status::created);
+    response.set(http::field::content_type, "text/plain");
+    response.body() = "Created entry at {\"id\":" + std::to_string(value) + "}" + "\n";
+    response.prepare_payload();
+    INFO << get_client_ip() << ": created id " << std::to_string(value) << " for entity " << entity << "\n";
+}
+
+void request_handler_crud::prepare_unprocessable_entity_response(std::string dir, http::response<http::string_body>& response)
 {
-    INFO << get_client_ip() << ": Using CRUD API request handler\n";
+    response.result(http::status::unprocessable_entity);
+    response.set(http::field::content_type, "text/html");
+    response.body() = "<html><head><title>Unprocessable Entity</title></head><body><h1>422 Unprocessable Entity</h1></body></html>";
+    response.prepare_payload();
+    INFO << get_client_ip() << ": cannot create directory " << dir << "\n";
+}
 
-    auto method = request.method();
-    switch (method) {
-        // post, get, put, delete
-        case http::verb::post: {
-            std::string prefix = get_prefix() + "/";
-            size_t pos = request.target().find(prefix);
-            //if the given location is found, url starts with crud location,
-            //and the string of location is smaller than the url, this is a valid path
-            if (pos != std::string::npos && pos == 0 && request.target().length() > prefix.length()) {
-                std::string key = std::string(request.target().substr(prefix.length()));
-                std::string path = get_dir() + "/" + key;
-                int value;
-                //remove trailing slash
-                while(path.length() >= 1 && path[path.length()-1] == '/') {
-                    path.pop_back();
-                }
-                //if entity does not exist yet
-                if (file_to_id_.find(key) == file_to_id_.end()) {
-                    try {
-                        boost::filesystem::create_directory(path);
-                    } 
-                    catch (const boost::filesystem::filesystem_error& e) {
-                        INFO << get_client_ip() << "Unable to create directory for " << key << "\n";
-                        //unprocessable entity
-                        response.result(http::status::unprocessable_entity);
-                        response.set(http::field::content_type, "text/html");
-                        response.body() = "<html><head><title>Unprocessable Entity</title></head><body><h1>422 Unprocessable Entity</h1></body></html>";
-                        response.prepare_payload();
-                        return false;
-                    }
-                    std::vector<int> values = {1};
-                    file_to_id_[key] = values;
-                    value = 1;
-                    INFO << get_client_ip() << "Created directory for new entity: " << key << "\n";
-                }
-                //if entity already exits
-                else {
-                    int lowest_available_id = 1;
-                    //finds the lowest available id
-                    for(int i=0; i<file_to_id_[key].size(); i++) {
-                        if (file_to_id_[key][i] == lowest_available_id) {
-                            lowest_available_id++;
-                        }
-                    }
-                    file_to_id_[key].push_back(lowest_available_id);
-                    std::vector<int> values_copy = file_to_id_[key];
-                    std::sort(values_copy.begin(), values_copy.end());
-                    file_to_id_[key] = values_copy;
-                    value = lowest_available_id;
-                }
-                //write to file of the given entity value pair
-                std::ostringstream oss;     
-                oss << request.body();
-                std::string body = oss.str();
-                oss.clear();
-                std::ofstream file(path + "/" + std::to_string(value));
-                file << body;
-                file.close();
-                INFO << get_client_ip() << "Created id " << std::to_string(value) << " for entity " << key << "\n";
-                //prepare response
-                response.result(http::status::created);
-                response.set(http::field::content_type, "text/plain");
-                response.body() = "Created entry at {\"id\":" + std::to_string(value) + "}" + "\n";
-                response.prepare_payload();
-                return true;
-            }    
-            // cannot find the folder
-            response.result(http::status::not_found);
-            response.set(http::field::content_type, "text/html");
-            response.body() = not_found_msg;
-            response.prepare_payload();
+void request_handler_crud::prepare_bad_request_response(http::response<http::string_body>& response)
+{
+    response.result(http::status::bad_request);
+    response.set(http::field::content_type, "text/plain");
+    response.body() = "Invalid CRUD method.\n";
+    response.prepare_payload();
+}
 
+void request_handler_crud::prepare_not_found_response(http::response<http::string_body>& response)
+{
+    response.result(http::status::not_found);
+    response.set(http::field::content_type, "text/html");
+    response.body() = "<html><head><title>Not Found</title></head><body><h1>404 Not Found</h1></body></html>";
+    response.prepare_payload();
+}
+
+bool request_handler_crud::handle_post_request(std::string suffix, http::request<http::string_body> request, http::response<http::string_body>& response)
+{
+    std::string path = get_dir() + "/" + suffix;
+    //if entity does not exist yet
+    if (file_to_id_.find(suffix) == file_to_id_.end()) {
+        if ( !create_dir(path)) {
+            prepare_unprocessable_entity_response(path, response);
             return false;
         }
-        case http::verb::get: {
-            std::string prefix = get_prefix() + "/";
-            std::string target = std::string(request.target().substr(prefix.length()));
-            std::string path = get_dir() + "/" + target;
-            if (!(boost::filesystem::exists(path))) {
-                response.result(http::status::not_found);
-                response.set(http::field::content_type, "text/plain");
-                response.body() = "No file or directory found at " + target + "." + "\n";
+    }
+    int value = get_next_id(suffix);
+    // write to file of the given entity value pair
+    if (write_to_file((path + "/" + std::to_string(value)), std::string(request.body())))
+    {
+        prepare_created_response(value, suffix, response);
+        return true;
+    }
+    INFO << get_client_ip() << ": cannot create id " << std::to_string(value) << " for entity " << suffix << "\n";
+    prepare_not_found_response(response);
+    return false;
+}
+
+bool request_handler_crud::handle_get_request(std::string suffix, http::response<http::string_body>& response)
+{
+    std::string path = get_dir() + "/" + suffix;
+    if (boost::filesystem::exists(path)) {
+        if (boost::filesystem::is_directory(path)) {
+            std::vector<int> ids = file_to_id_[suffix];
+            std::vector<std::string> ids_str;
+            // Convert ID vector of type int to type string
+            std::transform(ids.begin(), ids.end(), std::back_inserter(ids_str),
+                [](const int& id) { return std::to_string(id); });
+            std::string id_list = boost::algorithm::join(ids_str, ",");
+
+            response.result(http::status::ok);
+            response.set(http::field::content_type, "text/plain");
+            response.body() = "[" + id_list + "]\n";
+            response.prepare_payload();
+            INFO << get_client_ip() << ": sending list of IDs for GET request at " << path;
+            return true;
+        }
+        else {
+            std::string content;
+            if (read_from_file(path, content)) {
+                response.result(http::status::ok);
+                response.body() = content;
                 response.prepare_payload();
-                ERROR << "CRUD GET request: File or directory " << path << " not found.";
-                return false;
+                INFO << get_client_ip() << ": CRUD GET request: Finish Setting Response\n";
+                return true;
             }
-            if (boost::filesystem::is_directory(path)) {
-                std::size_t found = target.find_last_of("/");
-                std::string key = target.substr(0,found);
-                std::vector<int> ids = file_to_id_[key];
-                std::vector<std::string> ids_str;
-                // Convert ID vector of type int to type string
-                std::transform(ids.begin(), ids.end(), std::back_inserter(ids_str),
-                    [](const int& id) { return std::to_string(id); });
-                std::string id_list = boost::algorithm::join(ids_str, ",");
-                std::string formatted_list = "[" + id_list + "]\n";
+        }
+    }
+    prepare_not_found_response(response);
+    return false;
+}
+
+bool request_handler_crud::handle_put_request(std::string suffix, http::request<http::string_body> request, http::response<http::string_body>& response)
+{
+    int value;
+    std::string path = get_dir() + "/" + suffix;
+    std::size_t found = suffix.find_last_of("/");
+    std::string id_name = suffix.substr(found+1);
+    std::string entity = suffix.substr(0, found);
+
+    std::string::const_iterator it = id_name.begin();
+    while (it != id_name.end() && std::isdigit(*it)) {
+        ++it;
+    }
+    //if after last / is integer, this is a valid path
+    if(!id_name.empty() && it == id_name.end()) {
+        //if key before last / exists
+        value = std::stoi(id_name);
+        if (file_to_id_.find(entity) != file_to_id_.end()) {
+            if ( insert_to_map(entity, value)) {
+                prepare_created_response(value, entity, response);
+            } else {
+                response.result(http::status::ok);
+                response.body() = "Updated entry at {\"id\":" + std::to_string(value) + "}" + "\n";
+                response.prepare_payload();
+                INFO << get_client_ip() << "File updated for id " << std::to_string(value) << " for entity " << entity << "\n";
+            }
+        }
+        //if key before last / does not exist
+        else if (! create_dir(get_dir() + '/' + entity))
+        {
+            prepare_unprocessable_entity_response(get_dir() + '/' + entity, response);
+            return false;
+        } else {
+            std::vector<int> values = {value};
+            file_to_id_[entity] = values;
+            prepare_created_response(value, entity, response);
+        } 
+
+        if (write_to_file(path, std::string(request.body())))  
+            return true;
+    }
+    prepare_not_found_response(response);
+    return false;
+}
+
+bool request_handler_crud::handle_delete_request(std::string suffix, http::response<http::string_body>& response)
+{
+    std::string path = get_dir() + "/" + suffix;
+    if (boost::filesystem::exists(path)) 
+    {
+        if (boost::filesystem::is_directory(path)) {
+            response.result(http::status::bad_request);
+            response.set(http::field::content_type, "text/plain");
+            response.body() = "Invalid format; expected a file ID.\n";
+            response.prepare_payload();
+            WARNING << get_client_ip() << ": CRUD DELETE operations must specify a file ID";
+            return false;
+        }
+
+        std::size_t found = suffix.find_last_of("/");
+        std::string id_name = suffix.substr(found+1);
+        std::string entity = suffix.substr(0, found);
+
+        int value;
+        try {
+            value = std::stoi(id_name);
+        } catch (const std::exception&) {
+            response.result(http::status::bad_request);
+            response.set(http::field::content_type, "text/plain");
+            response.body() = "Invalid format; expected a file ID.\n";
+            response.prepare_payload();
+            WARNING << get_client_ip() << ": CRUD DELETE operations must specify a file ID";
+            return false;
+        }
+
+        if (file_to_id_.find(entity) != file_to_id_.end()) {
+            if (std::remove(path.c_str()) == 0) {
+                // Remove value from file:id mapping
+                file_to_id_[entity].erase(std::remove(file_to_id_[entity].begin(), file_to_id_[entity].end(), value), file_to_id_[entity].end());
                 response.result(http::status::ok);
                 response.set(http::field::content_type, "text/plain");
-                response.body() = "ID's at " + key + ": " + formatted_list + "\n";
+                response.body() = "Successfully deleted file at /" + entity + "." + "\n";
                 response.prepare_payload();
-                INFO << "Sending list of IDs for GET request at " << path;
-                return false;
-            }
-            else {
-                std::ifstream file(path, std::ios::binary);
-                // read from file
-                if (file.good()) {
-                    INFO << "Reading data...\n";
-                    file.seekg(0, std::ios::end);
-                    std::string content;
-                    content.resize(file.tellg());
-                    file.seekg(0, std::ios::beg);
-                    file.read(&content[0], content.size());
-                    content += "\n";
-
-                    // if found the file, set response message
-                    response.result(http::status::ok);
-                    response.body() = content;
-                    response.prepare_payload();
-                    INFO << "CRUD GET request: Finish Setting Response\n";
-
-                    file.close();
-                    return true;
-                }
-            }
-        }
-        case http::verb::put: {
-            std::string prefix = get_prefix() + "/";
-            size_t pos = request.target().find(prefix);
-            //if the given location is found, url starts with crud location,
-            //and the string of location is smaller than the url, this is a valid path
-            if (pos != std::string::npos && pos == 0 && request.target().length() > prefix.length()) {
-                std::string key = std::string(request.target().substr(prefix.length()));
-                int value;
-                //remove trailing slash
-                while(key.length() >= 1 && key[key.length()-1] == '/') {
-                    key.pop_back();
-                }
-                std::size_t found = key.find_last_of("/");
-                std::string id_name = key.substr(found+1);
-                std::string file_name = key.substr(0, found);
-                std::string::const_iterator it = id_name.begin();
-                while (it != id_name.end() && std::isdigit(*it)) {
-                    ++it;
-                }
-                //if after last / is integer, this is a valid path
-                if(!id_name.empty() && it == id_name.end()) {
-                    //if key before last / exists
-                    value = std::stoi(id_name);
-                    if (file_to_id_.find(file_name) != file_to_id_.end()) {
-                        std::vector<int> id_names = file_to_id_[file_name]; 
-                        if (std::find(id_names.begin(), id_names.end(), value) == id_names.end()) {
-                            id_names.push_back(value);
-                            std::vector<int> values_copy = id_names;
-                            std::sort(values_copy.begin(), values_copy.end());
-                            file_to_id_[file_name] = values_copy;
-                            response.result(http::status::created);
-                            response.body() = "Created entry at {\"id\":" + std::to_string(value) + "}" + "\n";
-                            INFO << get_client_ip() << "Created id " << std::to_string(value) << " for entity " << file_name << "\n";
-                        }
-                        else {
-                            response.result(http::status::ok);
-                            response.body() = "Updated entry at {\"id\":" + std::to_string(value) + "}" + "\n";
-                            INFO << get_client_ip() << "File updated for id " << std::to_string(value) << " for entity " << file_name << "\n";
-                        }
-                    }
-                    //if key before last / does not exist
-                    else {
-                        try {
-                            boost::filesystem::create_directory(get_dir() + '/' + file_name);
-                        } 
-                        catch (const boost::filesystem::filesystem_error& e) {
-                            INFO << get_client_ip() << "Unable to create directory for " << file_name << "\n";
-                            //unprocessable entity
-                            response.result(http::status::unprocessable_entity);
-                            response.set(http::field::content_type, "text/html");
-                            response.body() = "<html><head><title>Unprocessable Entity</title></head><body><h1>422 Unprocessable Entity</h1></body></html>";
-                            response.prepare_payload();
-                            return false;
-                        }
-                        std::vector<int> values = {value};
-                        file_to_id_[file_name] = values;
-                        response.result(http::status::created);
-                        response.body() = "Created entry at {\"id\":" + std::to_string(value) + "}" + "\n";
-                        INFO << get_client_ip() << "Created directory for new entity: " << file_name << " and created id " << std::to_string(value) << "\n";
-                    }  
-                    std::string path = get_dir() + "/" + key;
-                    std::ostringstream oss;     
-                    oss << request.body();
-                    std::string body = oss.str();
-                    oss.clear();
-                    //ofstream automatically overwrites, which is expected for PUT
-                    std::ofstream file(path);
-                    file << body;
-                    file.close();
-                    response.prepare_payload();
-                    //prepare response
-                    return true;
-                }
-                else {
-                    //else error bad request
-                    response.result(http::status::bad_request);
-                    response.set(http::field::content_type, "text/html");
-                    response.body() = "<html><head><title>Bad Request</title></head><body><h1>400 Bad Request</h1></body></html>";
-                    response.prepare_payload();
-                  
-                    return false;
-                }
-            }    
-            // cannot find the folder
-            response.result(http::status::not_found);
-            response.set(http::field::content_type, "text/html");
-            response.body() = not_found_msg;
-            response.prepare_payload();
-
-            return false;
-        }
-        case http::verb::delete_: {
-            std::string prefix = get_prefix() + "/";
-            std::string target = std::string(request.target().substr(prefix.length()));
-            std::string path_str = get_dir() + "/" + target;
-            if (!(boost::filesystem::exists(path_str))) {
-                response.result(http::status::not_found);
-                response.set(http::field::content_type, "text/plain");
-                response.body() = "No file found at /" + target + "." + "\n";
-                response.prepare_payload();
-                ERROR << "File not found.";
-                return false;
-            }
-            if (boost::filesystem::is_directory(path_str)) {
-                response.result(http::status::bad_request);
-                response.set(http::field::content_type, "text/plain");
-                response.body() = "Invalid format; expected a file ID.\n";
-                response.prepare_payload();
-                WARNING << "Warning: CRUD DELETE operations must specify a file ID";
-                return false;
-            }
-
-            std::size_t found = target.find_last_of("/");
-            std::string key = target.substr(0,found);
-            std::string value_str = target.substr(found+1,target.length());
-            int value;
-            try {
-                value = std::stoi(value_str);
-            } catch (const std::exception&) {
-                response.result(http::status::bad_request);
-                response.set(http::field::content_type, "text/plain");
-                response.body() = "Invalid format; expected a file ID.\n";
-                response.prepare_payload();
-                WARNING << "Warning: CRUD DELETE operations must specify a file ID";
-                return false;
-            }
-
-            INFO << "Incoming CRUD request to delete file: " << "/" << target;
-            const char* path = path_str.c_str();
-            if (file_to_id_.find(key) != file_to_id_.end()) {
-                if (std::remove(path) == 0) {
-                    // Remove value from file:id mapping
-                    file_to_id_[key].erase(std::remove(file_to_id_[key].begin(), file_to_id_[key].end(), value), file_to_id_[key].end());
-                    response.result(http::status::ok);
-                    response.set(http::field::content_type, "text/plain");
-                    response.body() = "Successfully deleted file at /" + target + "." + "\n";
-                    response.prepare_payload();
-                    INFO << "Successfully deleted file at /" << target;
-                    return true;
-                }
-                else {
-                    response.result(http::status::internal_server_error);
-                    response.set(http::field::content_type, "text/plain");
-                    response.body() = "Error deleting file at /" + target + "." + "\n";
-                    ERROR << "CRUD request to delete file at /" << target << " failed";
-                }
+                INFO << get_client_ip() << ": successfully deleted file at /" << entity;
+                return true;
             }
             else {
                 response.result(http::status::internal_server_error);
                 response.set(http::field::content_type, "text/plain");
-                response.body() = "Could not find file ID for /" + target + "." + "\n";
-                ERROR << "CRUD request to delete file at /" << target << " failed; no file ID";
+                response.body() = "Error deleting file at /" + entity + "." + "\n";
+                ERROR << get_client_ip() <<  ": CRUD request to delete file at /" << entity << " failed";
+                response.prepare_payload();
+                return false;
             }
-            response.prepare_payload();
+        }
+    }
+    prepare_not_found_response(response);
+    return false;
+}
 
-            return false;
-            break;
+status request_handler_crud::handle_request(http::request<http::string_body> request, http::response<http::string_body>& response)
+{
+    INFO << get_client_ip() << ": using CRUD API request handler\n";
+
+    auto method = request.method();
+
+    std::string suffix;
+
+    if (! check_request_url(std::string(request.target()), suffix))
+    {
+        prepare_bad_request_response(response);
+        return false;
+    }
+    std::string path = get_dir() + "/" + suffix;
+
+    switch (method) {
+        // post, get, put, delete
+        case http::verb::post: {
+            return handle_post_request(suffix, request, response);
+        }
+        case http::verb::get: {
+            return handle_get_request(suffix, response);
+        }
+        case http::verb::put: {
+            return handle_put_request(suffix, request, response);
+        }
+        case http::verb::delete_: {
+            return handle_delete_request(suffix, response);
         }
         default:
-            response.result(http::status::bad_request);
-            response.set(http::field::content_type, "text/plain");
-            response.body() = "Invalid CRUD method.\n";
-            response.prepare_payload();
+        {
+            prepare_bad_request_response(response);
             return false;
+        }
     }
 }

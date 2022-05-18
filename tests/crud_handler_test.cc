@@ -23,7 +23,7 @@ class CrudHandlerTest :public::testing::Test
             delete req_handler_crud;
         }
     
-    
+        std::string not_found = "<html><head><title>Not Found</title></head><body><h1>404 Not Found</h1></body></html>";
         http::request<http::string_body> req;
         http::response<http::string_body> rep;
         enum {content_length_field = 0, content_type_field = 1};
@@ -110,7 +110,7 @@ TEST_F(CrudHandlerTest, CrudHandlerPUTInvalidFileTest)
     req.target( "/api/Shoes/a");
     req.method( http::verb::put );
     req_handler_crud -> handle_request(req, rep);
-    EXPECT_EQ(rep.result(), http::status::bad_request);
+    EXPECT_EQ(rep.result(), http::status::not_found);
 }
 
 TEST_F(CrudHandlerTest, CrudHandlerPUTNewEntityTest)
@@ -192,7 +192,7 @@ TEST_F(CrudHandlerTest, CrudHandlerGETListTest)
     req.method( http::verb::get );
     req_handler_crud -> handle_request(req, rep);
     EXPECT_EQ(rep.result(), http::status::ok);
-    EXPECT_EQ(std::string(rep.body().data()), "ID's at Shoes: [1,2]\n\n");  
+    EXPECT_EQ(std::string(rep.body().data()), "[1,2]\n");  
     boost::filesystem::remove_all("../crud_data/Shoes");
 }
 
@@ -207,7 +207,7 @@ TEST_F(CrudHandlerTest, CrudHandlerGETReadTest)
     req.method( http::verb::get );
     req_handler_crud -> handle_request(req, rep);
     EXPECT_EQ(rep.result(), http::status::ok);
-    EXPECT_EQ(std::string(rep.body().data()), "test\n");
+    EXPECT_EQ(std::string(rep.body().data()), "test");
     boost::filesystem::remove_all("../crud_data/Shoes");
 }
 
@@ -217,7 +217,7 @@ TEST_F(CrudHandlerTest, CrudHandlerGETNotFoundTest)
     req.method( http::verb::get );
     req_handler_crud -> handle_request(req, rep);
     EXPECT_EQ(rep.result(), http::status::not_found);
-    EXPECT_EQ(std::string(rep.body().data()), "No file or directory found at Shoes.\n");
+    EXPECT_EQ(std::string(rep.body().data()), not_found);
 }
 
 TEST_F(CrudHandlerTest, CrudHandlerDELETETest)
@@ -234,7 +234,7 @@ TEST_F(CrudHandlerTest, CrudHandlerDELETETest)
     EXPECT_EQ(boost::filesystem::exists( "../crud_data/Shoes/1" ), false);
     std::vector<int> ids = {};
     EXPECT_EQ(file_to_id["Shoes"], ids);
-    EXPECT_EQ(std::string(rep.body().data()), "Successfully deleted file at /Shoes/1.\n");
+    EXPECT_EQ(std::string(rep.body().data()), "Successfully deleted file at /Shoes.\n");
     EXPECT_EQ(rep.result(), http::status::ok);
     boost::filesystem::remove_all("../crud_data/Shoes");
 }
@@ -257,6 +257,6 @@ TEST_F(CrudHandlerTest, CrudHandlerDELETENotExistingTest)
     req.target( "/api/Shoes/1" );
     req.method( http::verb::delete_ );
     req_handler_crud -> handle_request(req, rep);
-    EXPECT_EQ(std::string(rep.body().data()), "No file found at /Shoes/1.\n");
+    EXPECT_EQ(std::string(rep.body().data()), not_found);
     EXPECT_EQ(rep.result(), http::status::not_found);
 }
