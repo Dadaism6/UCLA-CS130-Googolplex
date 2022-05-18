@@ -230,6 +230,14 @@ status request_handler_crud::handle_request(http::request<http::string_body> req
             std::string prefix = get_prefix() + "/";
             std::string target = std::string(request.target().substr(prefix.length()));
             std::string path_str = get_dir() + "/" + target;
+            if (!(boost::filesystem::exists(path_str))) {
+                response.result(http::status::not_found);
+                response.set(http::field::content_type, "text/plain");
+                response.body() = "No file found at /" + target + "." + "\n";
+                response.prepare_payload();
+                ERROR << "File not found.";
+                return false;
+            }
             if (boost::filesystem::is_directory(path_str)) {
                 response.result(http::status::bad_request);
                 response.set(http::field::content_type, "text/plain");
@@ -256,37 +264,29 @@ status request_handler_crud::handle_request(http::request<http::string_body> req
 
             INFO << "Incoming CRUD request to delete file: " << "/" << target;
             const char* path = path_str.c_str();
-            if (boost::filesystem::exists(path_str)) {
-                if (file_to_id_.find(key) != file_to_id_.end()) {
-                    if (std::remove(path) == 0) {
-                        // Remove value from file:id mapping
-                        file_to_id_[key].erase(std::remove(file_to_id_[key].begin(), file_to_id_[key].end(), value), file_to_id_[key].end());
-                        response.result(http::status::ok);
-                        response.set(http::field::content_type, "text/plain");
-                        response.body() = "Successfully deleted file at /" + target + "." + "\n";
-                        response.prepare_payload();
-                        INFO << "Successfully deleted file at /" << target;
-                        return true;
-                    }
-                    else {
-                        response.result(http::status::internal_server_error);
-                        response.set(http::field::content_type, "text/plain");
-                        response.body() = "Error deleting file at /" + target + "." + "\n";
-                        ERROR << "CRUD request to delete file at /" << target << " failed";
-                    }
+            if (file_to_id_.find(key) != file_to_id_.end()) {
+                if (std::remove(path) == 0) {
+                    // Remove value from file:id mapping
+                    file_to_id_[key].erase(std::remove(file_to_id_[key].begin(), file_to_id_[key].end(), value), file_to_id_[key].end());
+                    response.result(http::status::ok);
+                    response.set(http::field::content_type, "text/plain");
+                    response.body() = "Successfully deleted file at /" + target + "." + "\n";
+                    response.prepare_payload();
+                    INFO << "Successfully deleted file at /" << target;
+                    return true;
                 }
                 else {
                     response.result(http::status::internal_server_error);
                     response.set(http::field::content_type, "text/plain");
-                    response.body() = "Could not find file ID for /" + target + "." + "\n";
-                    ERROR << "CRUD request to delete file at /" << target << " failed; no file ID";
+                    response.body() = "Error deleting file at /" + target + "." + "\n";
+                    ERROR << "CRUD request to delete file at /" << target << " failed";
                 }
             }
             else {
-                response.result(http::status::not_found);
+                response.result(http::status::internal_server_error);
                 response.set(http::field::content_type, "text/plain");
-                response.body() = "No file found at /" + key + "." + "\n";
-                ERROR << "File not found.";
+                response.body() = "Could not find file ID for /" + target + "." + "\n";
+                ERROR << "CRUD request to delete file at /" << target << " failed; no file ID";
             }
             response.prepare_payload();
 
@@ -294,8 +294,10 @@ status request_handler_crud::handle_request(http::request<http::string_body> req
             break;
         }
         default:
-            // TODO: send 404/400/something, we didn't get a valid CRUD method
-            response.result(http::status::method_not_allowed);
+            response.result(http::status::bad_request);
+            response.set(http::field::content_type, "text/plain");
+            response.body() = "Invalid CRUD method.\n";
+            response.prepare_payload();
             return false;
     }
 }
