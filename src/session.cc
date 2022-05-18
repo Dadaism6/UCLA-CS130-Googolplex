@@ -24,7 +24,10 @@ void session::start()
 	client_ip_ = socket_.remote_endpoint().address().to_string();
 	INFO << client_ip_ << ": Connection started" << "\n";
 	socket_.async_read_some(boost::asio::buffer(in_data_, max_length), boost::bind(&session::handle_read, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+
 }
+
+
 
 // read from buffer and write to socket and call handle_write
 void session::read()

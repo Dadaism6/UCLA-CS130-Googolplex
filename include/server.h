@@ -22,6 +22,11 @@ class server
 		bool handle_accept(session* new_session, const boost::system::error_code& error);
 		bool create_dispatcher(std::map<std::string, config_arg> addrmap);
 
+		//Run the server's io_service loop.
+		void start();
+		// Stop the server.
+		void stop();
+
 	private:
 		boost::asio::io_service& io_service_;
 		tcp::acceptor acceptor_;

@@ -51,4 +51,11 @@ class CrudHandlerFactory : public RequestHandlerFactory
         std::map<std::string, std::vector<int>> file_to_id;
 };
 
+class BlockHandlerFactory : public RequestHandlerFactory
+{
+    public:
+        BlockHandlerFactory(config_arg arg);
+        request_handler* create();
+};
+
 #endif  // HANDLER_FACTORY_H

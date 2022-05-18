@@ -19,7 +19,7 @@
 using boost::asio::ip::tcp;
 
 // signal handler
-void signalHandler( int signum ) {
+void signalHandler(int signum) {
    INFO << "Interrupt signal \"" << strsignal(signum) << "\" received. Shutting Down server. \n";
    exit(signum);  
 }
@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
 		INFO << "Finish parsing, prepare to start the server\n";
 
 		server s(io_service, port, addrmap);
-		io_service.run();
+		s.start();
 	}
 	catch (std::exception& e)
 	{

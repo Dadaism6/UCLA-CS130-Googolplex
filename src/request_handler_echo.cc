@@ -20,6 +20,5 @@ status request_handler_echo::handle_request(http::request<http::string_body> req
 	response.body() = content; 
 	response.set(http::field::content_type, "text/plain");
 	response.prepare_payload();
-	
 	return true;
 }

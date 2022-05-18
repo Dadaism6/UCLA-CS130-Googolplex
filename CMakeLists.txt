@@ -39,7 +39,15 @@ add_library(session src/session.cc)
 add_library(server_src src/server.cc)
 add_library(config_parser src/config_parser.cc)
 add_library(logger src/log.cc)
-add_library(request_handler src/request_handler_factory.cc src/request_handler_echo.cc src/request_handler_static.cc src/request_handler_not_found.cc src/request_handler_crud.cc src/content_type.cc)
+add_library(request_handler 
+    src/request_handler_factory.cc 
+    src/request_handler_echo.cc 
+    src/request_handler_static.cc 
+    src/request_handler_not_found.cc 
+    src/request_handler_crud.cc 
+    src/request_handler_block.cc
+    src/content_type.cc
+)
 
 # Update executable name, srcs, and deps, remember to add new 
 # libraries to target_link_libraries
@@ -73,4 +81,7 @@ add_test(NAME ServerIntegrationTest COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tes
 
 # Update with target/test targets
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS session server_src config_parser request_handler TESTS config_parser_test server_test session_test request_handler_test crud_handler_test)
+generate_coverage_report(
+    TARGETS session server_src config_parser request_handler 
+    TESTS config_parser_test server_test session_test request_handler_test crud_handler_test
+)

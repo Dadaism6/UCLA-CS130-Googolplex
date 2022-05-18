@@ -1,7 +1,0 @@
-<info> Server Startup
-<info> Preparing to parse the config file
-<info> Map location: / with empty root and type of handler: EchoHandler
-<info> Finish parsing, prepare to start the server
-<info> Invoke EchoHandler and serve at location /
-<info> Start the server on port 80
-<info> Interrupt signal "Terminated" received. Shutting Down server. 
