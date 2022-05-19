@@ -46,6 +46,7 @@ add_library(request_handler
     src/request_handler_not_found.cc 
     src/request_handler_crud.cc 
     src/request_handler_block.cc
+    src/request_handler_health.cc
     src/content_type.cc
 )
 

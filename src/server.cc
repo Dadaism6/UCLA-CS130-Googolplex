@@ -80,6 +80,8 @@ bool server::create_dispatcher(std::map<std::string, config_arg> addrmap)
             routes[mapping.first] = std::shared_ptr<CrudHandlerFactory>(new CrudHandlerFactory(curr_handler));
         else if (handler_type == "BlockHandler")
             routes[mapping.first] = std::shared_ptr<BlockHandlerFactory>(new BlockHandlerFactory(curr_handler));
+            else if (handler_type == "HealthHandler")
+            routes[mapping.first] = std::shared_ptr<HealthHandlerFactory>(new HealthHandlerFactory(curr_handler));
         else
             routes[mapping.first] = std::shared_ptr<NotFoundHandlerFactory>(new NotFoundHandlerFactory(curr_handler));
     }

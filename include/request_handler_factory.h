@@ -58,4 +58,11 @@ class BlockHandlerFactory : public RequestHandlerFactory
         request_handler* create();
 };
 
+class HealthHandlerFactory : public RequestHandlerFactory
+{
+    public:
+        HealthHandlerFactory(config_arg arg);
+        request_handler* create();
+};
+
 #endif  // HANDLER_FACTORY_H

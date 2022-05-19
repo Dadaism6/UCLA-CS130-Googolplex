@@ -3,6 +3,7 @@
 #include "request_handler_echo.h"
 #include "request_handler_static.h"
 #include "request_handler_not_found.h"
+#include "request_handler_health.h"
 
 #include <fstream>
 #include <stdio.h>
@@ -22,15 +23,20 @@ class RequestHandlerTest:public::testing::Test
         not_found_arg.location = "/";
         not_found_arg.root = "";
 
+        health_arg.location = "/health";
+        health_arg.root = "";
+
         req_handler_echo = new request_handler_echo(echo_arg.location, echo_arg.root);
         req_handler_static = new request_handler_static(static_arg.location, static_arg.root);
         req_handler_not_found = new request_handler_not_found(not_found_arg.location, not_found_arg.root);
+        req_handler_health = new request_handler_health(health_arg.location, health_arg.root);
     }
 
     ~RequestHandlerTest() {
         delete req_handler_echo;
         delete req_handler_static;
         delete req_handler_not_found;
+        delete req_handler_health;
     }
   protected:
     void write_to_file(std::string path);
@@ -47,10 +53,12 @@ class RequestHandlerTest:public::testing::Test
     config_arg echo_arg;
     config_arg static_arg;
     config_arg not_found_arg;
+    config_arg health_arg;
 
     request_handler* req_handler_echo;
     request_handler* req_handler_static;
     request_handler* req_handler_not_found;
+    request_handler* req_handler_health;
 };
 
 void RequestHandlerTest::write_to_file(std::string path)
@@ -208,4 +216,12 @@ TEST_F(RequestHandlerTest, NotFoundTest)
 {
     req_handler_not_found -> handle_request(req, rep);
     EXPECT_EQ(rep.result(), http::status::not_found);
+}
+
+TEST_F(RequestHandlerTest, HealthTest)
+{
+    req.target( "/health");
+    req_handler_health -> handle_request(req, rep);
+    EXPECT_EQ(rep.result(), http::status::ok);
+    EXPECT_EQ(std::string(rep.body().data()), "ok");
 }
