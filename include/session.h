@@ -42,6 +42,7 @@ class session
 		tcp::socket socket_;
 		std::string rep_;
 		enum { max_length = 1024,  content_length_field = 0, content_type_field = 1};
+		std::string response_metric = "[ResponseMetrics]";
 		char in_data_[max_length];
 
 		request_handler* request_handler_;

@@ -1,6 +1,6 @@
 #include "session.h"
 #include "log.h"
-
+#include <string.h>
 #include <boost/beast/core/buffers_to_string.hpp>
 
 
@@ -130,12 +130,14 @@ http::response<http::string_body> session::generate_response(char* request_data,
 				INFO << "Successfully handled the request, return response to client " << client_ip_ << "\n";
 			else
 				INFO << "Something went wrong when handling the request, return response to client " << client_ip_ << "\n";
+			INFO << response_metric << "\tresponse code:" << std::to_string(response.result_int()) << " " << response.result() << "\trequest IP:" << client_ip_ << "\trequest path:" << std::string(request.target()) << "\trequest handler name:" << (routes[location]->arg).handler_type << "\n";
 			delete request_handler_;  // short life cycle request handler
 			return response;
 		}
 	}
 
 	response.result(http::status::bad_request);
+	INFO << response_metric << "\tresponse code:" << std::to_string(response.result_int()) << " " << response.result() << "\trequest IP:" << client_ip_;
 	return response;
 }
 
