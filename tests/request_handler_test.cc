@@ -239,5 +239,5 @@ TEST_F(RequestHandlerTest, BlockTest)
     req.target( "/sleep/2");
     req_handler_block -> handle_request(req, rep);
     EXPECT_EQ(rep.result(), http::status::ok);
-    EXPECT_EQ(std::string(rep.body().data()), "Sleep2s!\n");
+    EXPECT_EQ(std::string(rep.body().data()), "Sleep 2s!\n");
 }

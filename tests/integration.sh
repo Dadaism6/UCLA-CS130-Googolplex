@@ -176,7 +176,7 @@ else
 fi
 
 #Test 6: multithread
-echo "Test7: Multithrad"
+echo "Test6: Multithread"
 sleep 0.1
 curl localhost/sleep/1 > ./tmp0.txt &
 curl -s -I localhost > ./tmp.txt
@@ -207,7 +207,7 @@ fi
 #Test 7.1: POST
 echo "Test7.1: POST"
 #For unknown reasons, CRUD requests only seem to function when the server is started from the build directory
-sleep 3
+sleep 6
 cd ../build
 timeout 3s ./bin/webserver ../tests/config_files/config_t_crud &> /dev/null &
 cd ../tests
