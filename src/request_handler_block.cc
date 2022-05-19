@@ -20,7 +20,7 @@ status request_handler_block::handle_request(http::request<http::string_body> re
 	sleep(block_time);
 
 	response.result(http::status::ok);
-	response.body() = "Sleep" + std::to_string(block_time) + "s!"; 
+	response.body() = "Sleep" + std::to_string(block_time) + "s!\n"; 
 	response.set(http::field::content_type, "text/plain");
 	response.prepare_payload();
 

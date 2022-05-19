@@ -23,3 +23,7 @@ location /echo EchoHandler {
 location / NotFoundHandler {
     
 }
+
+location /sleep BlockHandler {
+    
+}

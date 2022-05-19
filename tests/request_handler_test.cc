@@ -4,6 +4,7 @@
 #include "request_handler_static.h"
 #include "request_handler_not_found.h"
 #include "request_handler_health.h"
+#include "request_handler_block.h"
 
 #include <fstream>
 #include <stdio.h>
@@ -26,10 +27,14 @@ class RequestHandlerTest:public::testing::Test
         health_arg.location = "/health";
         health_arg.root = "";
 
+        block_arg.location = "/sleep";
+        block_arg.root = "";
+
         req_handler_echo = new request_handler_echo(echo_arg.location, echo_arg.root);
         req_handler_static = new request_handler_static(static_arg.location, static_arg.root);
         req_handler_not_found = new request_handler_not_found(not_found_arg.location, not_found_arg.root);
         req_handler_health = new request_handler_health(health_arg.location, health_arg.root);
+        req_handler_block = new request_handler_block(health_arg.location, block_arg.root);
     }
 
     ~RequestHandlerTest() {
@@ -37,6 +42,7 @@ class RequestHandlerTest:public::testing::Test
         delete req_handler_static;
         delete req_handler_not_found;
         delete req_handler_health;
+        delete req_handler_block;
     }
   protected:
     void write_to_file(std::string path);
@@ -54,11 +60,13 @@ class RequestHandlerTest:public::testing::Test
     config_arg static_arg;
     config_arg not_found_arg;
     config_arg health_arg;
+    config_arg block_arg;
 
     request_handler* req_handler_echo;
     request_handler* req_handler_static;
     request_handler* req_handler_not_found;
     request_handler* req_handler_health;
+    request_handler* req_handler_block;
 };
 
 void RequestHandlerTest::write_to_file(std::string path)
@@ -223,5 +231,13 @@ TEST_F(RequestHandlerTest, HealthTest)
     req.target( "/health");
     req_handler_health -> handle_request(req, rep);
     EXPECT_EQ(rep.result(), http::status::ok);
-    EXPECT_EQ(std::string(rep.body().data()), "ok");
+    EXPECT_EQ(std::string(rep.body().data()), "OK");
+}
+
+TEST_F(RequestHandlerTest, BlockTest)
+{
+    req.target( "/sleep/2");
+    req_handler_block -> handle_request(req, rep);
+    EXPECT_EQ(rep.result(), http::status::ok);
+    EXPECT_EQ(std::string(rep.body().data()), "Sleep2s!\n");
 }

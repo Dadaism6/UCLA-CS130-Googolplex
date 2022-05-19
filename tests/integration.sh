@@ -64,7 +64,7 @@ fi
 
 #Test 4: static server
 echo "Test4: static server"
-timeout 5s ../build/bin/webserver ./config_files/config_t_multipath &> /dev/null &
+timeout 6s ../build/bin/webserver ./config_files/config_t_multipath &> /dev/null &
 sleep 0.1
 curl localhost:80/static1/minion.jpg --output ./tmp.jpg
 sleep 0.1
@@ -175,82 +175,110 @@ else
     exit 1
 fi
 
-#Test 6: CRUD Handler
-#Test 6.1: POST
-echo "Test6.1: POST"
+#Test 6: multithread
+echo "Test7: Multithrad"
+sleep 0.1
+curl localhost/sleep/1 > ./tmp0.txt &
+curl -s -I localhost > ./tmp.txt
+sleep 0.1
+echo "Check for mulththread"
+lines1=`wc -l ./tmp0.txt | awk '{print $1}'` # should be 0 here
+lines2=`wc -l ./tmp.txt | awk '{print $1}'` # multithread, shoule be > 0 here
+if test $lines1 -eq 0 && test $lines2 -gt 0 ; then
+    sleep 1
+    lines3=`wc -l ./tmp0.txt | awk '{print $1}'` # block ends, now > 0
+    if test $lines3 -gt 0 ; then
+        rm ./tmp.txt ./tmp0.txt
+        echo -e "Test 6 pass"
+    else 
+        rm ./tmp.txt ./tmp0.txt
+        echo -e "Test 6 fail - sleep handler not returning on time"
+        exit 1
+    fi
+else
+    sleep 1
+    rm ./tmp.txt ./tmp0.txt
+    echo -e "Test 6 fail - mulththread not supported"
+    exit 1
+fi
+
+
+#Test 7: CRUD Handler
+#Test 7.1: POST
+echo "Test7.1: POST"
 #For unknown reasons, CRUD requests only seem to function when the server is started from the build directory
-sleep 4
+sleep 3
 cd ../build
-timeout 5s ./bin/webserver ../tests/config_files/config_t_crud &> /dev/null &
+timeout 3s ./bin/webserver ../tests/config_files/config_t_crud &> /dev/null &
 cd ../tests
 sleep 0.3
 curl -v -X POST -H "application/json" -d "{'a': 1}" http://localhost/api/Shoes
 sleep 0.1
 echo "Compare the result"
 if cmp -s ../crud_data/Shoes/1 ../static/static1/crud_post.txt ; then
-    echo -e "Test 6.1 pass"
+    echo -e "Test 7.1 pass"
     continue
 else
     rm ../crud_data/Shoes/1
-    echo -e "Test 6.1 fail - content not same"
+    echo -e "Test 7.1 fail - content not same"
     exit 1
 fi
 
-#Test 6.2: GET LIST
-echo "Test6.2: GET LIST"
+#Test 7.2: GET LIST
+echo "Test7.2: GET LIST"
 sleep 0.1
 curl -v http://localhost/api/Shoes | tr -d "\n" > ./tmp.txt
 sleep 0.1
 echo "Compare the result"
 if cmp -s ../static/static1/crud_list.txt ./tmp.txt ; then
     rm ./tmp.txt
-    echo -e "Test 6.2 pass"
+    echo -e "Test 7.2 pass"
 else
     rm ./tmp.txt
-    echo -e "Test 6.2 fail - content not same"
+    echo -e "Test 7.2 fail - content not same"
     exit 1
 fi
 
-#Test 6.3: GET READ
-echo "Test6.3: GET READ"
+#Test 7.3: GET READ
+echo "Test7.3: GET READ"
 sleep 0.1
 curl -v -X GET http://localhost/api/Shoes/1 | tr -d "\n" > ./tmp.txt
 sleep 0.1
 echo "Compare the result"
 if cmp -s ../crud_data/Shoes/1 ./tmp.txt ; then
     rm ./tmp.txt
-    echo -e "Test 6.3 pass"
+    echo -e "Test 7.3 pass"
 else
     rm ./tmp.txt
-    echo -e "Test 6.3 fail - content not same"
+    echo -e "Test 7.3 fail - content not same"
     exitd 1
 fi
 
-#Test 6.4: PUT
-echo "Test6.4: PUT"
+#Test 7.4: PUT
+echo "Test7.4: PUT"
 sleep 0.1
 curl -v -X PUT -d "It has been PUT!" http://localhost/api/Shoes/1
 sleep 0.1
 echo "Compare the result"
 if cmp -s ../crud_data/Shoes/1 ../static/static1/crud_put.txt ; then
-    echo -e "Test 6.4 pass"
+    echo -e "Test 7.4 pass"
 else
     rm ../crud_data/Shoes/1
-    echo -e "Test 6.4 fail - content not same"
+    echo -e "Test 7.4 fail - content not same"
     exit 1
 fi
 
-#Test 6.5: DELETE
-echo "Test6.5: DELETE"
+#Test 7.5: DELETE
+echo "Test7.5: DELETE"
 sleep 0.1
 curl -v -X DELETE http://localhost/api/Shoes/1
 sleep 0.1
 echo "Check for deletion"
 if ! test -f ../crud_data/Shoes/1 ; then
-    echo -e "Test 6.5 pass"
+    echo -e "Test 7.5 pass"
     exit 0
 else
     rm ../crud_data/Shoes/1
-    echo -e "Test 6.5 fail - file found"
+    echo -e "Test 7.5 fail - file found"
     exit 1
 fi

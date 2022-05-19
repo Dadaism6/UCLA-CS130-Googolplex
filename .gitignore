@@ -4,3 +4,4 @@ build
 build_*
 log
 mirror
+crud_data/*
