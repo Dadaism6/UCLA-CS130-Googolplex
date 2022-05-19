@@ -17,6 +17,11 @@ class CrudHandlerTest :public::testing::Test
             crud_arg.root = "../crud_data";
             crud_arg.location = "/api";
             req_handler_crud = new request_handler_crud(crud_arg.location, crud_arg.root, file_to_id);
+            if(!boost::filesystem::exists(crud_arg.root))
+            {
+                boost::filesystem::path rootFolder = crud_arg.root;
+                boost::filesystem::create_directory(rootFolder);
+            }
         }
     
         ~CrudHandlerTest() {

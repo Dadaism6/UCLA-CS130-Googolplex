@@ -7,6 +7,8 @@
 #include "request_handler_health.h"
 #include "log.h"
 
+#include <boost/filesystem.hpp>
+
 RequestHandlerFactory::RequestHandlerFactory(config_arg arg) : arg(arg) 
 {
     INFO << "Invoke " << arg.handler_type << " and serve at location " << arg.location << "\n";
@@ -18,7 +20,21 @@ StaticHandlerFactory::StaticHandlerFactory(config_arg arg) : RequestHandlerFacto
 
 NotFoundHandlerFactory::NotFoundHandlerFactory(config_arg arg) : RequestHandlerFactory(arg) {}
 
-CrudHandlerFactory::CrudHandlerFactory(config_arg arg) : RequestHandlerFactory(arg) {}
+CrudHandlerFactory::CrudHandlerFactory(config_arg arg) : RequestHandlerFactory(arg) {
+    boost::filesystem::path rootpath(arg.root);
+    //if root path (eg. /api) does not exist, create one
+    if( !boost::filesystem::exists(rootpath))
+    {
+        INFO << "CURD root path: " << arg.root << " does not exist! Creating\n";
+        boost::filesystem::path rootFolder = arg.root;
+        try {
+            boost::filesystem::create_directory(rootFolder);
+        } catch (const boost::filesystem::filesystem_error& e) {
+            FATAL << "Bad root in config for CrudHandler: " << arg.root << "\n";
+            exit(1);
+        }
+    }
+}
 
 BlockHandlerFactory::BlockHandlerFactory(config_arg arg) : RequestHandlerFactory(arg) {}
 
