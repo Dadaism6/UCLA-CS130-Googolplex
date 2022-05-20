@@ -14,6 +14,7 @@
 
 #include <csignal>
 #include <map>
+#include <boost/thread.hpp>
 
 
 using boost::asio::ip::tcp;
@@ -76,7 +77,7 @@ int main(int argc, char* argv[])
 		INFO << "Finish parsing, prepare to start the server\n";
 
 		server s(io_service, port, addrmap);
-		s.start();
+		s.start(boost::thread::hardware_concurrency());
 	}
 	catch (std::exception& e)
 	{

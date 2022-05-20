@@ -23,7 +23,7 @@ class server
 		bool create_dispatcher(std::map<std::string, config_arg> addrmap);
 
 		//Run the server's io_service loop.
-		void start();
+		void start(int n_threads);
 		// Stop the server.
 		void stop();
 

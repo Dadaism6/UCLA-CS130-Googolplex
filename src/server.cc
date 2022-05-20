@@ -22,10 +22,10 @@ server::~server()
     INFO << "Server shuts down" << "\n";
 }
 
-void server::start() {
+void server::start(int n_threads) {
     // Create a pool of threads to run all of the io_services.
     std::vector<boost::shared_ptr<boost::thread>> threads;
-    for (std::size_t i = 0; i < boost::thread::hardware_concurrency(); ++i)
+    for (std::size_t i = 0; i < n_threads; ++i)
     {
         boost::shared_ptr<boost::thread> thread(new boost::thread(
             boost::bind(&boost::asio::io_service::run, &io_service_)));

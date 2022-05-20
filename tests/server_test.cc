@@ -27,7 +27,6 @@ class ServerTest:public::testing::Test
             test_arg.location = "/";
             test_arg.root = "";
             routes["/"] = std::shared_ptr<NotFoundHandlerFactory>(new NotFoundHandlerFactory(test_arg));
-
             config_arg echo_arg;
             echo_arg.location = "/echo";
             echo_arg.root = "";
@@ -40,9 +39,25 @@ class ServerTest:public::testing::Test
             not_found_arg.location = "/";
             not_found_arg.root = "";
             not_found_arg.handler_type = "404Handler";
+            config_arg block_arg;
+            block_arg.location = "/sleep";
+            block_arg.root = "";
+            block_arg.handler_type = "BlockHandler";
+            config_arg health_arg;
+            health_arg.location = "/health";
+            health_arg.root = "";
+            health_arg.handler_type = "HealthHandler";
+            config_arg crud_arg;
+            crud_arg.location = "/api";
+            crud_arg.root = "";
+            crud_arg.handler_type = "CrudHandler";
+
             addrmap_factory["/echo"] = echo_arg;
             addrmap_factory["/static"] = static_arg;
             addrmap_factory["/"] = not_found_arg;
+            addrmap_factory["/sleep"] = block_arg;
+            addrmap_factory["/health"] = health_arg;
+            addrmap_factory["/api"] = crud_arg;
         }
 
     protected:
@@ -70,9 +85,10 @@ class MockSession: public session {
         void read() {std::cout << "read: dummy function here" << std::endl; }
 };
 
-// test server construction
+// test server construction and start
 TEST_F(ServerTest, ServerConstruction) {
     server s(io_service, port, addrmap);
+    s.start(0);
     EXPECT_TRUE(true);
 }
 

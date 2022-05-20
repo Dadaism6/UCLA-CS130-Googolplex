@@ -4,6 +4,8 @@
 #include "request_handler_echo.h"
 #include "request_handler_static.h"
 #include "request_handler_not_found.h"
+#include "request_handler_health.h"
+#include "request_handler_block.h"
 #include "request_handler_factory.h"
 
 #include <map>
@@ -31,9 +33,24 @@ class SessionTest:public::testing::Test
             not_found_arg.location = "/";
             not_found_arg.root = "";
             not_found_arg.handler_type = "404Handler";
+            config_arg health_arg;
+            health_arg.location = "/health";
+            health_arg.root = "";
+            health_arg.handler_type = "HealthHandler";
+            config_arg block_arg;
+            block_arg.location = "/sleep";
+            block_arg.root = "";
+            block_arg.handler_type = "BlockHandler";
+            config_arg crud_arg;
+            crud_arg.location = "/api";
+            crud_arg.root = "";
+            crud_arg.handler_type = "CrudHandler";
             routes["/echo"] = std::shared_ptr<EchoHandlerFactory>(new EchoHandlerFactory(echo_arg));
             routes["/static"] = std::shared_ptr<StaticHandlerFactory>(new StaticHandlerFactory(static_arg));
             routes["/"] = std::shared_ptr<NotFoundHandlerFactory>(new NotFoundHandlerFactory(not_found_arg));
+            routes["/health"] = std::shared_ptr<HealthHandlerFactory>(new HealthHandlerFactory(health_arg));
+            routes["/sleep"] = std::shared_ptr<BlockHandlerFactory>(new BlockHandlerFactory(block_arg));
+            routes["/api"] = std::shared_ptr<CrudHandlerFactory>(new CrudHandlerFactory(crud_arg));
         }
 
     protected:
@@ -49,6 +66,12 @@ class SessionTest:public::testing::Test
         const int request_data_2_invalid_length = 1025;
         char request_data_3[40] = "GET / HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
         const int request_data_3_length = 39;
+        char request_data_block[45] = "GET /sleep HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
+        const int request_data_block_length = 44;
+        char request_data_health[46] = "GET /health HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
+        const int request_data_health_length = 45;
+        char request_data_crud_list[46] = "GET /api/no HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
+        const int request_data_crud_list_length = 45;
         char request_data_4[6] = "hello";
         const int request_data_4_length = 5;
         char echo_request[44] = "GET /echo HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
@@ -189,6 +212,27 @@ TEST_F(SessionTest, NotFoundRequest) {
     rep = s.generate_response(request_data_3, request_data_3_length);
     EXPECT_EQ(rep.result(), http::status::not_found);
     rep = s.generate_response(trailing_slash, trailing_slash_length);
+    EXPECT_EQ(rep.result(), http::status::not_found);
+}
+
+// block request
+TEST_F(SessionTest, BlockRequest) {
+    session s(io_service, routes);
+    rep = s.generate_response(request_data_block, request_data_block_length);
+    EXPECT_EQ(rep.result(), http::status::ok);
+}
+
+// health request
+TEST_F(SessionTest, HealthRequest) {
+    session s(io_service, routes);
+    rep = s.generate_response(request_data_health, request_data_health_length);
+    EXPECT_EQ(rep.result(), http::status::ok);
+}
+
+// crud list request
+TEST_F(SessionTest, CrudListRequest) {
+    session s(io_service, routes);
+    rep = s.generate_response(request_data_crud_list, request_data_crud_list_length);
     EXPECT_EQ(rep.result(), http::status::not_found);
 }
 

@@ -265,3 +265,22 @@ TEST_F(CrudHandlerTest, CrudHandlerDELETENotExistingTest)
     EXPECT_EQ(std::string(rep.body().data()), not_found);
     EXPECT_EQ(rep.result(), http::status::not_found);
 }
+
+TEST_F(CrudHandlerTest, CrudHandlerDELETENoIDTest)
+{
+    boost::filesystem::create_directory("../crud_data/Shoes");
+    std::ofstream file("../crud_data/Shoes/not_a_number");
+    file.close();
+    req.target( "/api/Shoes/not_a_number" );
+    req.method( http::verb::delete_ );
+    req_handler_crud -> handle_request(req, rep);
+    EXPECT_EQ(rep.result(), http::status::bad_request);
+}
+
+TEST_F(CrudHandlerTest, CrudHandlerInvalidMethodTest)
+{
+    req.target( "/api/Shoes/1" );
+    req.method( http::verb::trace );
+    req_handler_crud -> handle_request(req, rep);
+    EXPECT_EQ(rep.result(), http::status::bad_request);
+}
