@@ -49,7 +49,7 @@ class ServerTest:public::testing::Test
             health_arg.handler_type = "HealthHandler";
             config_arg crud_arg;
             crud_arg.location = "/api";
-            crud_arg.root = "";
+            crud_arg.root = "../crud_data";
             crud_arg.handler_type = "CrudHandler";
 
             addrmap_factory["/echo"] = echo_arg;

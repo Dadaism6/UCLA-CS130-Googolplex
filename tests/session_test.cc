@@ -43,7 +43,7 @@ class SessionTest:public::testing::Test
             block_arg.handler_type = "BlockHandler";
             config_arg crud_arg;
             crud_arg.location = "/api";
-            crud_arg.root = "";
+            crud_arg.root = "../crud_data";
             crud_arg.handler_type = "CrudHandler";
             routes["/echo"] = std::shared_ptr<EchoHandlerFactory>(new EchoHandlerFactory(echo_arg));
             routes["/static"] = std::shared_ptr<StaticHandlerFactory>(new StaticHandlerFactory(static_arg));
