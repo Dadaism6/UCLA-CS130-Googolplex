@@ -5,13 +5,6 @@
 #include "config_arg.h"
 #include <vector>
 
-enum HandlerType 
-{
-    Echo_Handler,
-    Static_Handler,
-    Not_Found_Handler,
-    Crud_Handler
-};
 
 class RequestHandlerFactory 
 {
@@ -62,6 +55,13 @@ class HealthHandlerFactory : public RequestHandlerFactory
 {
     public:
         HealthHandlerFactory(config_arg arg);
+        request_handler* create();
+};
+
+class TextGenHandlerFactory : public RequestHandlerFactory
+{
+    public:
+        TextGenHandlerFactory(config_arg arg);
         request_handler* create();
 };
 

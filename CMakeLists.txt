@@ -32,6 +32,12 @@ set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost 1.50 REQUIRED COMPONENTS system log_setup log regex filesystem)
 message(STATUS "Boost version: ${Boost_VERSION}")
 
+find_package(CURL REQUIRED)
+
+include(FetchContent)
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.10.5/json.tar.xz)
+FetchContent_MakeAvailable(json)
+
 include_directories(include)
 
 # Update name and srcs whenever new source files are added
@@ -47,8 +53,10 @@ add_library(request_handler
     src/request_handler_crud.cc 
     src/request_handler_block.cc
     src/request_handler_health.cc
+    src/request_handler_text_gen.cc
     src/content_type.cc
 )
+target_link_libraries(request_handler PRIVATE nlohmann_json::nlohmann_json CURL::libcurl)
 
 # Update executable name, srcs, and deps, remember to add new 
 # libraries to target_link_libraries

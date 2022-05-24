@@ -15,4 +15,5 @@ RUN apt-get update && apt-get install -y \
     libboost-regex-dev \
     libboost-system-dev \
     libgtest-dev \
-    netcat
+    netcat \
+    libcurl4-openssl-dev \

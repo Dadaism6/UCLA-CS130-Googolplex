@@ -25,7 +25,9 @@ class request_handler
         enum {content_length_field = 0, content_type_field = 1};
 
     protected:
+        std::string bad_request_msg = "<html><head><title>Bad Request</title></head><body><h1>400 Bad Request</h1></body></html>";
         std::string not_found_msg = "<html><head><title>Not Found</title></head><body><h1>404 Not Found</h1></body></html>";
+        std::string internal_server_error_msg = "<html><head><title>Internal Server Error</title></head><body><h1>500 Internal Server Error</h1></body></html>";
 
     private:
         std::string client_ip_;

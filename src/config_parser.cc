@@ -251,41 +251,70 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config, in
 						break;
 					}
 				}
-				else if((last_token_type == TOKEN_TYPE_NORMAL) && (lastoken.compare("root") == 0 || lastoken == "data_path")){
-					// std::string location = "/static";
-					// std::string config_type = "StaticHandler";
-					std::string location = "";
-					std::string config_type = "";
-					NginxConfig* currentlayer = config_stack.top();
-					config_stack.pop();
-					if(config_stack.empty()){
-						// INFO << "Config: root is not inside the child bracket of location, using default location: /static\n";
-					}
-					else{
-						std::vector<std::string> parent_token = config_stack.top()->statements_.back().get()->tokens_;
-						if(parent_token.size() >= 3 && (parent_token.rbegin()[2].compare("location") == 0)){
-							location = parent_token.rbegin()[1];
-							config_type = parent_token.rbegin()[0];
-						} else {
-							// INFO << "Config: root is not inside the child bracket of location, using default location: /static\n";
+				else if(last_token_type == TOKEN_TYPE_NORMAL){
+					if (lastoken == "root" || lastoken == "data_path")
+					{
+						std::string location = "";
+						std::string config_type = "";
+						NginxConfig* currentlayer = config_stack.top();
+						config_stack.pop();
+						if( !config_stack.empty()){
+							std::vector<std::string> parent_token = config_stack.top()->statements_.back().get()->tokens_;
+							if(parent_token.size() >= 3 && (parent_token.rbegin()[2].compare("location") == 0)){
+								location = parent_token.rbegin()[1];
+								config_type = parent_token.rbegin()[0];
+							}
 						}
-					}
 
-					config_arg args;
-					args.handler_type = config_type;
-					args.location = location;
-					args.root = token;
-
-					if(addrmap->count(location) > 0){
-						INFO << "Location: "<< location << " has already be mapped to a path, update the root to: " << token << " and handler type to: " << args.handler_type << "\n";
-						(addrmap->find(location)) -> second = args; 
-					}
-					else{
 						if (location != "" && config_type != "")
-							addrmap->insert(std::pair<std::string, config_arg>(location, args));
-						INFO << "Map location: " << location  << " with root: " << token << " and type of handler: " << args.handler_type << "\n";
+						{
+							if(addrmap->count(location) > 0){
+								INFO << "Location: "<< location << " has already be mapped to a path, update the root to: " << token << " and handler type to: " << config_type << "\n";
+								((addrmap->find(location)) -> second).handler_type = config_type;
+								((addrmap->find(location)) -> second).location = location;
+								((addrmap->find(location)) -> second).root = token;
+							} else {
+								config_arg args;
+								args.handler_type = config_type;
+								args.location = location;
+								args.root = token;
+								addrmap->insert(std::pair<std::string, config_arg>(location, args));
+								INFO << "Map location: " << location  << " with root: " << token << " and type of handler: " << config_type << "\n";
+							}
+						}
+						config_stack.push(currentlayer);
+					} else if (lastoken == "api-key")
+					{
+						std::string location = "";
+						std::string config_type = "";
+						NginxConfig* currentlayer = config_stack.top();
+						config_stack.pop();
+						if( !config_stack.empty()){
+							std::vector<std::string> parent_token = config_stack.top()->statements_.back().get()->tokens_;
+							if(parent_token.size() >= 3 && (parent_token.rbegin()[2].compare("location") == 0)){
+								location = parent_token.rbegin()[1];
+								config_type = parent_token.rbegin()[0];
+							}
+						}
+
+						if (location != "" && config_type != "")
+						{
+							if(addrmap->count(location) > 0){
+								INFO << "Location: "<< location << " has already be mapped to a path, update handler type to: " << config_type << "\n";
+								((addrmap->find(location)) -> second).handler_type = config_type;
+								((addrmap->find(location)) -> second).location = location;
+								((addrmap->find(location)) -> second).api_key = token;
+							} else {
+								config_arg args;
+								args.handler_type = config_type;
+								args.location = location;
+								args.api_key = token;
+								addrmap->insert(std::pair<std::string, config_arg>(location, args));
+								INFO << "Map location: " << location  << " with type of handler: " << config_type << "\n";
+							}
+						}
+						config_stack.push(currentlayer);
 					}
-					config_stack.push(currentlayer);
 				}
 			}
 			config_stack.top()->statements_.back().get()->tokens_.push_back(token);

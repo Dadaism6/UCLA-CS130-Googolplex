@@ -5,6 +5,7 @@
 #include "request_handler_crud.h"
 #include "request_handler_block.h"
 #include "request_handler_health.h"
+#include "request_handler_text_gen.h"
 #include "log.h"
 
 #include <boost/filesystem.hpp>
@@ -40,6 +41,8 @@ BlockHandlerFactory::BlockHandlerFactory(config_arg arg) : RequestHandlerFactory
 
 HealthHandlerFactory::HealthHandlerFactory(config_arg arg) : RequestHandlerFactory(arg) {}
 
+TextGenHandlerFactory::TextGenHandlerFactory(config_arg arg) : RequestHandlerFactory(arg) {}
+
 // Utilize polymorphism for factory method creation
 request_handler* EchoHandlerFactory::create() 
 {
@@ -69,4 +72,9 @@ request_handler* BlockHandlerFactory::create()
 request_handler* HealthHandlerFactory::create() 
 {
     return new request_handler_health(arg.location, arg.root);
+}
+
+request_handler* TextGenHandlerFactory::create() 
+{
+    return new request_handler_text_gen(arg.location, arg.root, arg.api_key);
 }
