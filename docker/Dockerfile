@@ -16,6 +16,21 @@ RUN ctest --output-on_failure
 # Define deploy stage
 FROM ubuntu:focal as deploy
 
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    curl \
+    gcovr \
+    httpie \
+    libboost-log-dev \
+    libboost-regex-dev \
+    libboost-system-dev \
+    libgtest-dev \
+    netcat \
+    libcurl4-openssl-dev
+
 # Copy server output binary to "."
 COPY --from=builder /usr/src/project/build/bin/webserver .
 COPY --from=builder /usr/src/project/config/default.config .
