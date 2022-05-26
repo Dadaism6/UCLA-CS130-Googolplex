@@ -6,10 +6,13 @@
 #include "request_handler_not_found.h"
 #include "request_handler_health.h"
 #include "request_handler_block.h"
+#include "request_handler_crud.h"
+#include "request_handler_text_gen.h"
 #include "request_handler_factory.h"
 
 #include <map>
 #include <memory>
+#include <boost/filesystem.hpp>
 
 using ::testing::AtLeast;    
 using ::testing::_;
@@ -23,34 +26,36 @@ class SessionTest:public::testing::Test
             // manually create dispatcher mapping
             config_arg echo_arg;
             echo_arg.location = "/echo";
-            echo_arg.root = "";
             echo_arg.handler_type = "EchoHandler";
             config_arg static_arg;
             static_arg.location = "/static";
-            static_arg.root = "";
             static_arg.handler_type = "StaticHandler";
             config_arg not_found_arg;
             not_found_arg.location = "/";
-            not_found_arg.root = "";
             not_found_arg.handler_type = "404Handler";
             config_arg health_arg;
             health_arg.location = "/health";
-            health_arg.root = "";
             health_arg.handler_type = "HealthHandler";
             config_arg block_arg;
             block_arg.location = "/sleep";
-            block_arg.root = "";
             block_arg.handler_type = "BlockHandler";
             config_arg crud_arg;
             crud_arg.location = "/api";
-            crud_arg.root = "../crud_data";
+            crud_arg.root = "./temp";
             crud_arg.handler_type = "CrudHandler";
+            config_arg text_gen_arg;
+            text_gen_arg.location = "/text_gen";
+            text_gen_arg.handler_type = "TextGenHandler";
             routes["/echo"] = std::shared_ptr<EchoHandlerFactory>(new EchoHandlerFactory(echo_arg));
             routes["/static"] = std::shared_ptr<StaticHandlerFactory>(new StaticHandlerFactory(static_arg));
             routes["/"] = std::shared_ptr<NotFoundHandlerFactory>(new NotFoundHandlerFactory(not_found_arg));
             routes["/health"] = std::shared_ptr<HealthHandlerFactory>(new HealthHandlerFactory(health_arg));
             routes["/sleep"] = std::shared_ptr<BlockHandlerFactory>(new BlockHandlerFactory(block_arg));
             routes["/api"] = std::shared_ptr<CrudHandlerFactory>(new CrudHandlerFactory(crud_arg));
+            routes["/text_gen"] = std::shared_ptr<TextGenHandlerFactory>(new TextGenHandlerFactory(text_gen_arg));
+        }
+        ~SessionTest() {
+             boost::filesystem::remove_all("./temp");
         }
 
     protected:
@@ -72,6 +77,8 @@ class SessionTest:public::testing::Test
         const int request_data_health_length = 45;
         char request_data_crud_list[46] = "GET /api/no HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
         const int request_data_crud_list_length = 45;
+        char request_data_text_gen[48] = "GET /text_gen HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
+        const int request_data_text_gen_length = 47;
         char request_data_4[6] = "hello";
         const int request_data_4_length = 5;
         char echo_request[44] = "GET /echo HTTP/1.1\r\nHost: Zhengtong Liu\r\n\r\n";
@@ -229,10 +236,17 @@ TEST_F(SessionTest, HealthRequest) {
     EXPECT_EQ(rep.result(), http::status::ok);
 }
 
-// crud list request
-TEST_F(SessionTest, CrudListRequest) {
+// crud request
+TEST_F(SessionTest, CrudRequest) {
     session s(io_service, routes);
     rep = s.generate_response(request_data_crud_list, request_data_crud_list_length);
+    EXPECT_EQ(rep.result(), http::status::not_found);
+}
+
+// text gen request
+TEST_F(SessionTest, TextGenRequest) {
+    session s(io_service, routes);
+    rep = s.generate_response(request_data_text_gen, request_data_text_gen_length);
     EXPECT_EQ(rep.result(), http::status::not_found);
 }
 

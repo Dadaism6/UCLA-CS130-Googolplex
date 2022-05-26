@@ -57,7 +57,7 @@ add_library(request_handler
     src/request_handler_text_gen.cc
     src/content_type.cc
 )
-target_link_libraries(request_handler PRIVATE nlohmann_json::nlohmann_json CURL::libcurl)
+target_link_libraries(request_handler nlohmann_json::nlohmann_json CURL::libcurl)
 
 # Update executable name, srcs, and deps, remember to add new 
 # libraries to target_link_libraries
@@ -80,12 +80,16 @@ target_link_libraries(request_handler_test request_handler logger gtest_main Boo
 add_executable(crud_handler_test tests/crud_handler_test.cc)
 target_link_libraries(crud_handler_test request_handler logger gtest_main Boost::filesystem Boost::log_setup Boost::log Boost::system)
 
+add_executable(text_gen_handler_test tests/text_gen_handler_test.cc)
+target_link_libraries(text_gen_handler_test request_handler logger gtest_main Boost::filesystem Boost::log_setup Boost::log Boost::system)
+
 # Update with test binary
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(request_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(crud_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(text_gen_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_test(NAME ServerIntegrationTest COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration.sh)
 
@@ -93,5 +97,5 @@ add_test(NAME ServerIntegrationTest COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tes
 include(cmake/CodeCoverageReportConfig.cmake)
 generate_coverage_report(
     TARGETS session server_src config_parser request_handler 
-    TESTS config_parser_test server_test session_test request_handler_test crud_handler_test
+    TESTS config_parser_test server_test session_test request_handler_test crud_handler_test text_gen_handler_test
 )

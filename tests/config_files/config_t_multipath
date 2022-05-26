@@ -1,15 +1,14 @@
 #should be true
+#contains duplicate path
 #only contains port number and multiple static path
 listen   80;
 
-location /static StaticHandler {
-    root /data1;
-}
 location /static1 StaticHandler {
     root ../static/static1;
 }
+
 location /static2 StaticHandler {
-    root /data2;
+    root ../static/static2;
 }
 
 location /static1/static3 StaticHandler {
@@ -17,13 +16,25 @@ location /static1/static3 StaticHandler {
 }
 
 location /echo EchoHandler {
-
+    
 }
 
 location / NotFoundHandler {
     
 }
 
+location /api CrudHandler {
+    data_path ../crud_data;
+}
+
 location /sleep BlockHandler {
     
+}
+
+location /health HealthHandler {
+    
+}
+
+location /text_generate TextGenHandler {
+    api-key c97c056c-bb68-4ee5-82b6-97bd2e47c1b6;
 }

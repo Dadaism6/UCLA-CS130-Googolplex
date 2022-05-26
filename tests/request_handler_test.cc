@@ -16,19 +16,15 @@ class RequestHandlerTest:public::testing::Test
   public:
     RequestHandlerTest() {
         echo_arg.location = "/";
-        echo_arg.root = "";
 
         static_arg.location = "/" + static_;
         static_arg.root = base_dir;
 
         not_found_arg.location = "/";
-        not_found_arg.root = "";
 
         health_arg.location = "/health";
-        health_arg.root = "";
 
         block_arg.location = "/sleep";
-        block_arg.root = "";
 
         req_handler_echo = new request_handler_echo(echo_arg.location, echo_arg.root);
         req_handler_static = new request_handler_static(static_arg.location, static_arg.root);
@@ -115,7 +111,7 @@ TEST_F(RequestHandlerTest, FileNotFoundStaticTest)
 TEST_F(RequestHandlerTest, ContentTypeStaticTest_1)
 {
     file_name = file_name_no_extension + ".txt";
-    req.target( "/" + static_ + "/" + file_name);
+    req.target( "/" + static_ + "/" + file_name + "/");
     write_to_file(file_name);
     req_handler_static -> handle_request(req, rep);
     EXPECT_EQ(rep.result(), http::status::ok);

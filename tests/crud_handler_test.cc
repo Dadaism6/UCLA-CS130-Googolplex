@@ -70,6 +70,18 @@ TEST_F(CrudHandlerTest, CrudHandlerSequentialPOSTTest)
     EXPECT_EQ(std::string(rep.body().data()), "Created entry at {\"id\":2}\n");
 }
 
+TEST_F(CrudHandlerTest, CrudHandlerPostErrorTest)
+{
+    // creat bogus directory
+    boost::filesystem::create_directory("../crud_data/bogus");
+    boost::filesystem::create_directory("../crud_data/bogus/1");
+    req.target("/api/bogus");
+    req.method( http::verb::post );
+    req_handler_crud -> handle_request(req, rep);
+    EXPECT_EQ(rep.result(), http::status::internal_server_error);
+    boost::filesystem::remove_all("../crud_data/bogus");
+}
+
 TEST_F(CrudHandlerTest, CrudHandlerPOSTDirCreationFailTest)
 {
     req.target( "/api/Shoes");
@@ -120,7 +132,7 @@ TEST_F(CrudHandlerTest, CrudHandlerPUTInvalidFileTest)
 
 TEST_F(CrudHandlerTest, CrudHandlerPUTNewEntityTest)
 {
-    req.target( "/api/Shoes/2");
+    req.target( "/api/Shoes/2//");
     req.method( http::verb::put );
     req_handler_crud -> handle_request(req, rep);
     EXPECT_EQ(boost::filesystem::exists( "../crud_data/Shoes/2" ), true);
@@ -274,12 +286,21 @@ TEST_F(CrudHandlerTest, CrudHandlerDELETENoIDTest)
     req.target( "/api/Shoes/not_a_number" );
     req.method( http::verb::delete_ );
     req_handler_crud -> handle_request(req, rep);
+    boost::filesystem::remove_all("../crud_data/Shoes");
     EXPECT_EQ(rep.result(), http::status::bad_request);
 }
 
 TEST_F(CrudHandlerTest, CrudHandlerInvalidMethodTest)
 {
     req.target( "/api/Shoes/1" );
+    req.method( http::verb::trace );
+    req_handler_crud -> handle_request(req, rep);
+    EXPECT_EQ(rep.result(), http::status::bad_request);
+}
+
+TEST_F(CrudHandlerTest, CrudHandlerInvalidTargetTest)
+{
+    req.target( "invalid_url" );
     req.method( http::verb::trace );
     req_handler_crud -> handle_request(req, rep);
     EXPECT_EQ(rep.result(), http::status::bad_request);

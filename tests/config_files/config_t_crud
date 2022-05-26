@@ -2,6 +2,7 @@
 # contains port number and CrudHandler
 
 listen   80;
+
 location /api CrudHandler {
     data_path ../crud_data;
 }

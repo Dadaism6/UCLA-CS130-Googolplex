@@ -1,0 +1,28 @@
+#should be true
+#contains duplicate path
+
+listen   80;
+
+location /echo StaticHandler {
+
+}
+
+location /api CrudHandler {
+    data_path ../crud_data_fake;
+}
+
+location /text_generate TextGenHandler {
+    api-key c97c056c-bb68-4ee5-82b6-97bd2e47c1b6;
+}
+
+location /echo StaticHandler {
+
+}
+
+location /api CrudHandler {
+    data_path ../crud_data;
+}
+
+location /text_generate TextGenHandler {
+    api-key c97c056c-bb68-4ee5-82b6-97bd2e47c1b6;
+}

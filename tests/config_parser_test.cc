@@ -77,6 +77,11 @@ TEST_F(NginxConfigParserTest, TrueDoubleEscape){
   EXPECT_TRUE(port==-1);
 }
 
+TEST_F(NginxConfigParserTest, TrueDuplicatePathConfig) {
+  status = parser.Parse("config_files/config_t_duplicate_path", &out_config, &port, &addrmap);
+  EXPECT_TRUE(status);
+}
+
 TEST_F(NginxConfigParserTest, FalseSingleEscape){
   status = parser.Parse("config_files/config_f_single_escape", &out_config, &port, &addrmap);
   EXPECT_FALSE(status);

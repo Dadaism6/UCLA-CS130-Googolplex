@@ -25,32 +25,30 @@ class ServerTest:public::testing::Test
         ServerTest() {
             config_arg test_arg;
             test_arg.location = "/";
-            test_arg.root = "";
             routes["/"] = std::shared_ptr<NotFoundHandlerFactory>(new NotFoundHandlerFactory(test_arg));
             config_arg echo_arg;
             echo_arg.location = "/echo";
-            echo_arg.root = "";
             echo_arg.handler_type = "EchoHandler";
             config_arg static_arg;
             static_arg.location = "/static";
-            static_arg.root = "";
             static_arg.handler_type = "StaticHandler";
             config_arg not_found_arg;
             not_found_arg.location = "/";
-            not_found_arg.root = "";
             not_found_arg.handler_type = "404Handler";
             config_arg block_arg;
             block_arg.location = "/sleep";
-            block_arg.root = "";
             block_arg.handler_type = "BlockHandler";
             config_arg health_arg;
             health_arg.location = "/health";
-            health_arg.root = "";
             health_arg.handler_type = "HealthHandler";
             config_arg crud_arg;
             crud_arg.location = "/api";
             crud_arg.root = "../crud_data";
             crud_arg.handler_type = "CrudHandler";
+            config_arg text_gen_arg;
+            text_gen_arg.location = "/text_gen";
+            text_gen_arg.api_key = "key";
+            text_gen_arg.handler_type = "TextGenHandler";
 
             addrmap_factory["/echo"] = echo_arg;
             addrmap_factory["/static"] = static_arg;
@@ -58,6 +56,7 @@ class ServerTest:public::testing::Test
             addrmap_factory["/sleep"] = block_arg;
             addrmap_factory["/health"] = health_arg;
             addrmap_factory["/api"] = crud_arg;
+            addrmap_factory["/text_gen"] = text_gen_arg;
         }
 
     protected:

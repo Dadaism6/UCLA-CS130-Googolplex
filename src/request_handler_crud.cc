@@ -69,6 +69,15 @@ void request_handler_crud::prepare_unprocessable_entity_response(std::string dir
     INFO << get_client_ip() << ": cannot create directory " << dir << "\n";
 }
 
+void request_handler_crud::prepare_internal_server_error_response(std::string path, http::response<http::string_body>& response)
+{
+    response.result(http::status::internal_server_error);
+    response.set(http::field::content_type, "text/html");
+    response.body() = "<html><head><title>Internal Server Error</title></head><body><h1>500 Internal Server Error</h1></body></html>";
+    response.prepare_payload();
+    INFO << get_client_ip() << ": cannot perform file operation at " << path << "\n";
+}
+
 void request_handler_crud::prepare_bad_request_response(http::response<http::string_body>& response)
 {
     response.result(http::status::bad_request);
@@ -102,8 +111,7 @@ bool request_handler_crud::handle_post_request(std::string suffix, http::request
         prepare_created_response(value, suffix, response);
         return true;
     }
-    INFO << get_client_ip() << ": cannot create id " << std::to_string(value) << " for entity " << suffix << "\n";
-    prepare_not_found_response(response);
+    prepare_internal_server_error_response(suffix + "/" + std::to_string(value), response);
     return false;
 }
 
@@ -227,11 +235,7 @@ bool request_handler_crud::handle_delete_request(std::string suffix, http::respo
                 return true;
             }
             else {
-                response.result(http::status::internal_server_error);
-                response.set(http::field::content_type, "text/plain");
-                response.body() = "Error deleting file at /" + entity + "." + "\n";
-                ERROR << get_client_ip() <<  ": CRUD request to delete file at /" << entity << " failed";
-                response.prepare_payload();
+                prepare_internal_server_error_response(entity, response);
                 return false;
             }
         }

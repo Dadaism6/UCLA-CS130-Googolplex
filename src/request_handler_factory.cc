@@ -24,7 +24,7 @@ NotFoundHandlerFactory::NotFoundHandlerFactory(config_arg arg) : RequestHandlerF
 CrudHandlerFactory::CrudHandlerFactory(config_arg arg) : RequestHandlerFactory(arg) {
     boost::filesystem::path rootpath(arg.root);
     //if root path (eg. /api) does not exist, create one
-    if( !boost::filesystem::exists(rootpath))
+    if( !(boost::filesystem::exists(rootpath) && boost::filesystem::is_directory(rootpath)))
     {
         INFO << "CURD root path: " << arg.root << " does not exist! Creating\n";
         boost::filesystem::path rootFolder = arg.root;

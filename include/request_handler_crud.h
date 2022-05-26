@@ -24,6 +24,7 @@ class request_handler_crud : public request_handler
     bool insert_to_map(std::string key, int id);
     void prepare_created_response(int value, std::string entity, http::response<http::string_body>& response);
     void prepare_unprocessable_entity_response(std::string dir, http::response<http::string_body>& response);
+    void prepare_internal_server_error_response(std::string path, http::response<http::string_body>& response);
     void prepare_bad_request_response(http::response<http::string_body>& response);
     void prepare_not_found_response(http::response<http::string_body>& response);
     bool handle_post_request(std::string suffix, http::request<http::string_body> request, http::response<http::string_body>& response);
