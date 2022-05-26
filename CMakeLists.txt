@@ -46,6 +46,7 @@ add_library(server_src src/server.cc)
 add_library(config_parser src/config_parser.cc)
 add_library(logger src/log.cc)
 add_library(request_handler 
+    src/request_handler.cc
     src/request_handler_factory.cc 
     src/request_handler_echo.cc 
     src/request_handler_static.cc 
