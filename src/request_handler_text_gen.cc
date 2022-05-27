@@ -4,8 +4,11 @@
 #include <iostream>
 #include <string>
 #include <regex>
+#include <vector>
+#include <map>
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
+#include <boost/algorithm/string.hpp>
 
 using json = nlohmann::json;
 
@@ -16,6 +19,7 @@ namespace http = boost::beast::http;
     https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
     https://stackoverflow.com/questions/51923585/how-to-convert-curl-command-with-f-option-to-libcurl
     https://github.com/nlohmann/json
+    https://www.boost.org/doc/libs/1_36_0/doc/html/string_algo/usage.html#id3483755
     
 */
 
@@ -110,6 +114,7 @@ bool request_handler_text_gen::parse_raw_output(const std::string& raw_output, s
     }
 }
 
+// valid prompts: 0 < size <= 50; only has alphabets, numbers, "?", " ", ",", "_", "-"
 bool request_handler_text_gen::check_prompts_validity(std::string text)
 {
     if (text.length() <= 0 || text.length() > text_prompt_max_len)
@@ -120,6 +125,7 @@ bool request_handler_text_gen::check_prompts_validity(std::string text)
     return false;
 }
 
+// valid title: 0 < size <= 20; only has alphabets, numbers, ".", " ", "_", "-"
 bool request_handler_text_gen::check_title_validity(std::string title)
 {
     if (title.length() <= 0 || title.length() > title_max_len)
@@ -130,13 +136,45 @@ bool request_handler_text_gen::check_title_validity(std::string title)
     return false;
 }
 
+// parse post request body "title=xxx&prompt=xxx"
+bool request_handler_text_gen::parse_post_body(std::string body, std::map<std::string, std::string>& token_map)
+{
+    try {
+        std::vector<std::string> token_vector;
+        boost::split(token_vector, body, boost::is_any_of("&"));
+        if ( !token_vector.empty()) {
+            for (const std::string& token : token_vector) {
+                std::vector<std::string> key_value_pair;
+                boost::split(key_value_pair, token, boost::is_any_of("="));
+                // e.g. [title, xxx]
+                if (key_value_pair.size() == 2) {
+                    token_map.insert(std::make_pair(key_value_pair[0], key_value_pair[1]));
+                }
+            }
+            if (token_map.find("title") == token_map.end() || token_map.find("prompt") == token_map.end())
+                return false;
+            return true;
+        }
+        return false;
+    } catch (...) {
+        WARNING <<"cannot parse the post request body from: " << get_client_ip() << " with request body: " << body << "\n";
+        return false;
+    }
+
+}
+
 bool request_handler_text_gen::handle_post_request(http::request<http::string_body> request, http::response<http::string_body>& response)
 {
-    //TODO: parse input fields from front-end (title, text prompt)
     std::string input = request.body();
+    std::map<std::string, std::string> token_map;
+    if ( !(parse_post_body(input, token_map)))
+    {
+        prepare_bad_request_response(response);
+        return false;
+    }
 
-    std::string title = "dummy_title";
-    std::string text_prompt = input;
+    std::string title = token_map["title"];
+    std::string text_prompt = token_map["prompt"];
 
     std::string raw_output;
     std::string output;

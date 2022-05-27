@@ -20,6 +20,7 @@ class request_handler_text_gen: public request_handler
         std::string api_key;
         bool curl_api(std::string input, std::string& output);
         bool parse_raw_output(const std::string& raw_output, std::string& output);
+        bool parse_post_body(std::string body, std::map<std::string, std::string>& token_map);
 
         bool check_prompts_validity(std::string text);
         bool check_title_validity(std::string title);
