@@ -212,6 +212,15 @@ bool request_handler_text_gen::handle_post_request(http::request<http::string_bo
 	return false;
 }
 
+bool request_handler_text_gen::handle_options_request(http::request<http::string_body> request, http::response<http::string_body>& response)
+{
+    response.result(http::status::no_content);
+    response.set("Access-Control-Allow-Origin", "*");
+    response.set("Access-Control-Allow-Methods", "*");
+    response.set("Access-Control-Allow-Headers", "*");
+    return true;
+}
+
 status request_handler_text_gen::handle_request(http::request<http::string_body> request, http::response<http::string_body>& response)
 {	
 	std::string target = std::string(request.target());
@@ -235,6 +244,10 @@ status request_handler_text_gen::handle_request(http::request<http::string_body>
         case http::verb::delete_: {
             //TODO
             break;
+        }
+        case http::verb::options: {
+            // This case is used for CORS preflight
+            return handle_options_request(request, response);
         }
         default:
         {

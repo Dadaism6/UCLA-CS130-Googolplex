@@ -1,4 +1,5 @@
 HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
 Content-Type: text/plain
 Content-Length: 74
 

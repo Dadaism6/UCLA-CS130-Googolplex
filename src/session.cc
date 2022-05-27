@@ -116,6 +116,7 @@ http::response<http::string_body> session::generate_response(char* request_data,
 	std::string location;
 	http::request<http::string_body> request;
 	http::response<http::string_body> response;
+	response.set(http::field::access_control_allow_origin, "*");
 	
 	if (parse_request(request_data, data_len, request)) {
 		std::string target_url = std::string(request.target());

@@ -31,7 +31,7 @@ class request_handler_text_gen: public request_handler
         void prepare_internal_server_error_response(http::response<http::string_body>& response);
 
         bool handle_post_request(http::request<http::string_body> request, http::response<http::string_body>& response);
-
+        bool handle_options_request(http::request<http::string_body> request, http::response<http::string_body>& response);
 };
 
 #endif  // REQUEST_HANDLER_TEXT_GEN_H

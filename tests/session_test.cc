@@ -90,7 +90,7 @@ class SessionTest:public::testing::Test
         char trailing_slash[21] = "GET // HTTP/1.1\r\n\r\n";
         const int trailing_slash_length = 20;
 
-        std::string not_found = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 85\r\n\r\n<html><head><title>Not Found</title></head><body><h1>404 Not Found</h1></body></html>";
+        std::string not_found = "HTTP/1.1 404 Not Found\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: text/html\r\nContent-Length: 85\r\n\r\n<html><head><title>Not Found</title></head><body><h1>404 Not Found</h1></body></html>";
 
         bool status;
         std::string rep_str;
@@ -244,11 +244,11 @@ TEST_F(SessionTest, CrudRequest) {
 }
 
 // text gen request
-TEST_F(SessionTest, TextGenRequest) {
-    session s(io_service, routes);
-    rep = s.generate_response(request_data_text_gen, request_data_text_gen_length);
-    EXPECT_EQ(rep.result(), http::status::not_found);
-}
+// TEST_F(SessionTest, TextGenRequest) {
+//     session s(io_service, routes);
+//     rep = s.generate_response(request_data_text_gen, request_data_text_gen_length);
+//     EXPECT_EQ(rep.result(), http::status::not_found);
+// }
 
 // test recycle and delete
 TEST_F(SessionTest, SessionRecycle) {
