@@ -5,21 +5,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 
-bool request_handler_crud::check_request_url(std::string url, std::string& key) {
-    std::string prefix = get_prefix() + "/";
-    size_t pos = url.find(prefix);
-    if (pos != std::string::npos && pos == 0 && url.length() > prefix.length()) {
-        key = std::string(url.substr(prefix.length()));
-        //remove trailing slash
-        while(key.length() >= 1 && key[key.length()-1] == '/') {
-            key.pop_back();
-        }
-        return true;
-    }
-    key = "";
-    return false;
-}
-
 int request_handler_crud::get_next_id(std::string key) {
     int lowest_available_id = 1;
     //finds the lowest available id
@@ -252,7 +237,7 @@ status request_handler_crud::handle_request(http::request<http::string_body> req
 
     std::string suffix;
 
-    if (! check_request_url(std::string(request.target()), suffix))
+    if (! check_request_url(std::string(request.target()), suffix, false))
     {
         prepare_bad_request_response(response);
         return false;

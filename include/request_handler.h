@@ -22,10 +22,11 @@ class request_handler
 
         void set_client_ip(std::string client_ip) {client_ip_ = client_ip; }
 
+        // common helper function
         bool write_to_file(std::string path, std::string content);
         bool read_from_file(std::string path, std::string& content); 
         bool create_dir(std::string path);
-
+        bool check_request_url(std::string url, std::string& key, bool for_get);
         enum {content_length_field = 0, content_type_field = 1};
 
     protected:

@@ -9,6 +9,7 @@
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 
 using json = nlohmann::json;
 
@@ -197,7 +198,11 @@ bool request_handler_text_gen::handle_post_request(http::request<http::string_bo
             if (create_dir(folder))
             {
                 std::string path = folder + "/" + title;
-                std::string entry = "title: " + title + "\n\ntext prompt: " + text_prompt + "\n\ntext generation:\n" + output;
+                json j;
+                j["output"] = output;
+                j["text_prompt"] = text_prompt;
+                j["title"] = title;
+                std::string entry = j.dump(4);
                 if (write_to_file(path, entry))
                     return true;
                 else
@@ -210,6 +215,136 @@ bool request_handler_text_gen::handle_post_request(http::request<http::string_bo
 
     prepare_internal_server_error_response(response);
 	return false;
+}
+
+// get file name list for a given ip's prompt history
+bool request_handler_text_gen::get_ip_file_list(std::string path, std::string suffix, http::response<http::string_body>& response)
+{
+    if (boost::filesystem::exists(path)) {// check folder existence
+        if (boost::filesystem::is_directory(path)) 
+        {
+            std::vector<std::string> title_list;// file name list
+            for (const boost::filesystem::directory_entry & subentry : boost::filesystem::directory_iterator(path))
+            {
+                //for every file (eg. /text_gen/127_0_0_0/dummy)
+                if (boost::filesystem::is_regular_file(subentry.status())) 
+                {
+                    title_list.push_back(subentry.path().filename().string());
+                }
+            }
+            std::string split_title_list = boost::algorithm::join(title_list, ",");// convert list[a,b,c,d] to string "a,b,c,d"
+
+            response.result(http::status::ok);
+            response.set(http::field::content_type, "text/plain");
+            json j;
+            j["title list"] =  "[" + split_title_list + "]";
+            j["IP"] = dot2underscore(get_client_ip());
+            response.body() = j.dump(4);
+            response.prepare_payload();
+            INFO << get_client_ip() << ": sending list of titles for GET request at " << path;
+            return true;
+        }
+    }
+    prepare_not_found_response(response);
+    WARNING << "Cannot find folder for " << path << "\n";
+    return false;
+}
+
+// read/remove file content from path/suffix
+bool request_handler_text_gen::get_title_file(std::string path, std::string suffix, http::response<http::string_body>& response, bool remove)
+{
+    if (boost::filesystem::exists(path)) {
+        if (boost::filesystem::is_directory(path)) {
+            std::string titlepath = path + "/" + suffix;
+            if(boost::filesystem::is_regular_file(titlepath))// check file exists
+            {
+                if(remove)// remove the file
+                {
+                    boost::filesystem::remove(titlepath);
+                    INFO << "Removing: " << titlepath;
+                    response.result(http::status::ok);
+                    json j;
+                    j["status"] = "removed";
+                    j["title"] =  suffix;
+                    j["IP"] = dot2underscore(get_client_ip());
+                    response.body() = j.dump(4);
+                    response.set(http::field::content_type, "text/plain");
+                    response.prepare_payload();
+                    return true;
+                }
+                else// read the content
+                {
+                    std::string filecontent;
+                    if(read_from_file(titlepath, filecontent))
+                    {
+                        INFO << "Read from: " << titlepath;
+                        response.result(http::status::ok);
+                        json j;
+                        j["content"] = filecontent;
+                        j["status"] = "readed";
+                        j["title"] =  suffix;
+                        j["IP"] = dot2underscore(get_client_ip());
+                        response.body() = j.dump(4);
+                        response.set(http::field::content_type, "text/plain");
+                        response.prepare_payload();
+                        return true;
+                    }
+                    else
+                    {
+                        prepare_not_found_response(response);
+                        WARNING << "Cannot read from file for " << titlepath << "\n";
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                prepare_not_found_response(response);
+                WARNING << "Cannot open file for " << titlepath << "\n";
+                return false;
+            }
+        }
+    }
+    prepare_not_found_response(response);
+    WARNING << "Cannot find folder for " << path << "\n";
+    return false;
+}
+
+bool request_handler_text_gen::handle_get_request(http::request<http::string_body> request, http::response<http::string_body>& response)
+{
+    std::string suffix;
+    if (! check_request_url(std::string(request.target()), suffix, true))
+    {
+        prepare_bad_request_response(response);
+        return false;
+    }
+    std::string path = get_dir() + "/" + dot2underscore(get_client_ip());
+    bool result;
+    // if suffix is empty, it means the url == prefix (eg /txt_gen/), we return all the file name for given ip address
+    if(suffix == "")
+    {
+        result =  get_ip_file_list(path, suffix, response);
+    }
+    // suffix is not empty, we have (eg url = /txt_gen/dummy), we return the content for that file.
+    else
+    {
+        result = get_title_file(path, suffix, response, false);
+    }
+    return result;
+
+}
+
+bool request_handler_text_gen::handle_delete_request(http::request<http::string_body> request, http::response<http::string_body>& response)
+{
+    std::string suffix;
+    if (! check_request_url(std::string(request.target()), suffix, false))
+    {
+        prepare_bad_request_response(response);
+        return false;
+    }
+    std::string path = get_dir() + "/" + dot2underscore(get_client_ip());
+    return get_title_file(path, suffix, response, true);// set delete flag to true.
+
 }
 
 bool request_handler_text_gen::handle_options_request(http::request<http::string_body> request, http::response<http::string_body>& response)
@@ -234,16 +369,10 @@ status request_handler_text_gen::handle_request(http::request<http::string_body>
             return handle_post_request(request, response);
         }
         case http::verb::get: {
-            //TODO
-            break;
-        }
-        case http::verb::put: {
-            //TODO
-            break;
+            return handle_get_request(request, response);
         }
         case http::verb::delete_: {
-            //TODO
-            break;
+            return handle_delete_request(request, response);;
         }
         case http::verb::options: {
             // This case is used for CORS preflight

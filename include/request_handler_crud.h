@@ -19,7 +19,6 @@ class request_handler_crud : public request_handler
     status handle_request(http::request<http::string_body> request, http::response<http::string_body>& response);
   private:
     std::map<std::string, std::vector<int>>& file_to_id_;
-    bool check_request_url(std::string url, std::string& key);
     int get_next_id(std::string key);
     bool insert_to_map(std::string key, int id);
     void prepare_created_response(int value, std::string entity, http::response<http::string_body>& response);

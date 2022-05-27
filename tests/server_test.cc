@@ -47,6 +47,7 @@ class ServerTest:public::testing::Test
             crud_arg.handler_type = "CrudHandler";
             config_arg text_gen_arg;
             text_gen_arg.location = "/text_gen";
+            text_gen_arg.root = "./temp";
             text_gen_arg.api_key = "key";
             text_gen_arg.handler_type = "TextGenHandler";
 

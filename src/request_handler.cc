@@ -51,3 +51,28 @@ bool request_handler::create_dir(std::string path) {
     INFO << get_client_ip() << ": created directory: " << path << "\n";
     return true;
 }
+
+// speicial parsing, if url == prefix/, return true with empty key, used for get list
+bool request_handler::check_request_url(std::string url, std::string& key, bool for_get) {
+    std::string prefix = get_prefix() + "/";
+    INFO << "Prefix is: " << prefix << "  url is: " << url;
+    size_t pos = url.find(prefix);
+    if (pos != std::string::npos && pos == 0 && url.length() > prefix.length()) {
+        key = std::string(url.substr(prefix.length()));
+        //remove trailing slash
+        while(key.length() >= 1 && key[key.length()-1] == '/') {
+            key.pop_back();
+        }
+        return true;
+    }
+    else if(pos != std::string::npos && pos == 0 && url.length() == prefix.length()&& for_get) {
+        key = "";
+        return true;
+    }
+    else if(prefix.compare(url+"/") == 0){
+        key = "";
+        return true;
+    }
+    key = "";
+    return false;
+}

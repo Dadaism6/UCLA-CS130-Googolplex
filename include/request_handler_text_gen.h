@@ -30,8 +30,14 @@ class request_handler_text_gen: public request_handler
         void prepare_not_found_response(http::response<http::string_body>& response);
         void prepare_internal_server_error_response(http::response<http::string_body>& response);
 
+        bool get_ip_file_list(std::string path, std::string suffix, http::response<http::string_body>& response);
+        bool get_title_file(std::string path, std::string suffix, http::response<http::string_body>& response, bool remove);
+
         bool handle_post_request(http::request<http::string_body> request, http::response<http::string_body>& response);
+        bool handle_get_request(http::request<http::string_body> request, http::response<http::string_body>& response);
+        bool handle_delete_request(http::request<http::string_body> request, http::response<http::string_body>& response);
         bool handle_options_request(http::request<http::string_body> request, http::response<http::string_body>& response);
+
 };
 
 #endif  // REQUEST_HANDLER_TEXT_GEN_H
