@@ -76,5 +76,19 @@ request_handler* HealthHandlerFactory::create()
 
 request_handler* TextGenHandlerFactory::create() 
 {
+    boost::filesystem::path rootpath(arg.root);
+    //if root path (eg. /api) does not exist, create one
+    if( !(boost::filesystem::exists(rootpath) && boost::filesystem::is_directory(rootpath)))
+    {
+        INFO << "text_gen root path: " << arg.root << " does not exist! Creating\n";
+        boost::filesystem::path rootFolder = arg.root;
+        try {
+            boost::filesystem::create_directory(rootFolder);
+        } catch (const boost::filesystem::filesystem_error& e) {
+            FATAL << "Bad root in config for TextGenHandler: " << arg.root << "\n";
+            exit(1);
+        }
+    }
+
     return new request_handler_text_gen(arg.location, arg.root, arg.api_key);
 }

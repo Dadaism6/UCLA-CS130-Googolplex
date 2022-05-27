@@ -16,12 +16,20 @@ namespace http = boost::beast::http;
     https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
     https://stackoverflow.com/questions/51923585/how-to-convert-curl-command-with-f-option-to-libcurl
     https://github.com/nlohmann/json
+    
 */
 
 static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
     ((std::string*)userp)->append((char*)contents, size * nmemb);
     return size * nmemb;
+}
+
+std::string request_handler_text_gen::dot2underscore(std::string text)
+{
+    std::string text_copy = text;
+    std::replace(text_copy.begin(), text_copy.end(), '.', '_');
+    return text_copy;
 }
 
 // these functions can be lifted to the parent class
@@ -106,33 +114,59 @@ bool request_handler_text_gen::check_prompts_validity(std::string text)
 {
     if (text.length() <= 0 || text.length() > text_prompt_max_len)
         return false;
-    std::__cxx11::regex str_expr ("^[a-zA-Z0-9? ,_-]*$");
+    std::__cxx11::regex str_expr ("^[a-zA-Z0-9? ,_-]+$");
     if (regex_match(text, str_expr))
+        return true;
+    return false;
+}
+
+bool request_handler_text_gen::check_title_validity(std::string title)
+{
+    if (title.length() <= 0 || title.length() > title_max_len)
+        return false;
+    std::__cxx11::regex str_expr ("^[a-zA-Z0-9. _-]+$");
+    if (regex_match(title, str_expr))
         return true;
     return false;
 }
 
 bool request_handler_text_gen::handle_post_request(http::request<http::string_body> request, http::response<http::string_body>& response)
 {
-    //TODO: currently, only take text prompts as input
+    //TODO: parse input fields from front-end (title, text prompt)
     std::string input = request.body();
+
+    std::string title = "dummy_title";
+    std::string text_prompt = input;
+
     std::string raw_output;
     std::string output;
 
-    if ( !check_prompts_validity(input))
+    if ( (!check_prompts_validity(text_prompt)) || (!check_title_validity(title)))
     {
         prepare_bad_request_response(response); // error message to user?
         return false;
     }
 
-    if (curl_api(input, raw_output))
+    if (curl_api(text_prompt, raw_output))
     {
         if (parse_raw_output(raw_output, output)) {
             response.result(http::status::ok);
             response.body() = output; 
             response.set(http::field::content_type, "text/plain");
             response.prepare_payload();
-            return true;
+
+            std::string folder = get_dir() + "/" + dot2underscore(get_client_ip());
+            if (create_dir(folder))
+            {
+                std::string path = folder + "/" + title;
+                std::string entry = "title: " + title + "\n\ntext prompt: " + text_prompt + "\n\ntext generation:\n" + output;
+                if (write_to_file(path, entry))
+                    return true;
+                else
+                    WARNING << "cannot store user's input from " << get_client_ip() << "with title " << title << "\n";
+            } else {
+                WARNING << "cannot create dir for " << get_client_ip() << "\n";
+            }
         }
     }
 
