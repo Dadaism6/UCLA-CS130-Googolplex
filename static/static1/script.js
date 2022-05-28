@@ -14,8 +14,9 @@ const crudPOST = async () => {
 const textPOST = async () => {
     document.getElementById("text_response").innerHTML = "";
     document.getElementById("wait").innerHTML = "Please wait for several seconds";
-    var a = document.getElementById('promptInput').value;
-	var text_body = "title=dummy&prompt=" + a;
+    var title = document.getElementById('title').value;
+    var prompt = document.getElementById('prompt').value;
+	var text_body = "title=" + title + "&prompt=" + prompt;
     const response = await fetch('http://localhost:8080/text_generate', {
         method: 'post',
         body: text_body,

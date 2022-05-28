@@ -313,15 +313,36 @@ bool request_handler_text_gen::get_title_file(std::string path, std::string suff
 bool request_handler_text_gen::handle_get_request(http::request<http::string_body> request, http::response<http::string_body>& response)
 {
     std::string suffix;
-    if (! check_request_url(std::string(request.target()), suffix, true))
+    // replace "%20" with " "
+    std::string url = std::string(request.target());
+    std::regex space("%20");
+    url = std::regex_replace(url, space, " ");
+    if (! check_request_url(url, suffix, true))
     {
         prepare_bad_request_response(response);
         return false;
     }
     std::string path = get_dir() + "/" + dot2underscore(get_client_ip());
     bool result;
-    // if suffix is empty, it means the url == prefix (eg /txt_gen/), we return all the file name for given ip address
-    if(suffix == "")
+
+    if (suffix == "")
+    {
+        path = "../static/static1/text.html";
+        std::string content;
+        if( read_from_file(path, content)) {
+            response.result(http::status::ok);
+            response.set(http::field::content_type, "text/html");
+            response.body() = content;
+            response.prepare_payload();
+            return true;
+        } else {
+            prepare_internal_server_error_response(response);
+            return false;
+        }
+
+    } 
+    // if suffix is history?, it means the url == prefix (eg /txt_gen/), we return all the file name for given ip address
+    else if (suffix == "history?")
     {
         result =  get_ip_file_list(path, suffix, response);
     }
@@ -364,7 +385,7 @@ status request_handler_text_gen::handle_request(http::request<http::string_body>
     auto method = request.method();
 
     switch (method) {
-        // post, get, put, delete
+        // post, get, delete
         case http::verb::post: {
             return handle_post_request(request, response);
         }

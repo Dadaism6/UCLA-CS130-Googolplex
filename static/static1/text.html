@@ -5,12 +5,14 @@
     <title>Title</title>
 </head>
 <body>
-<script type="application/javascript" src="script.js"></script>
+<script type="application/javascript" src="../static1/script.js"></script>
 Googolplex AI Text Generator
 <br>
 <form onsubmit="return false">
-    <label for="fname">Input a piece of test:</label><br><br>
-    <input type="text" id="promptInput" name="promptInput" maxlength="20" size="40"><br><br>
+    <label for="fname">Title:</label><br><br>
+    <input type="text" id="title" name="title" maxlength="20" size="40"><br><br>
+    <label for="fname">Text prompt:</label><br><br>
+    <input type="text" id="prompt" name="prompt" maxlength="50" size="40"><br><br>
     <input type="submit" value="Submit" onclick="textPOST()"><br><br>
 </form>
 <p id="wait"></p>
