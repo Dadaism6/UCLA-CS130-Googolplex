@@ -235,7 +235,7 @@ bool request_handler_text_gen::get_ip_file_list(std::string path, std::string su
             std::string split_title_list = boost::algorithm::join(title_list, ",");// convert list[a,b,c,d] to string "a,b,c,d"
 
             response.result(http::status::ok);
-            response.set(http::field::content_type, "text/plain");
+            response.set(http::field::content_type, "application/json");
             json j;
             j["title list"] =  "[" + split_title_list + "]";
             j["IP"] = dot2underscore(get_client_ip());
@@ -268,7 +268,7 @@ bool request_handler_text_gen::get_title_file(std::string path, std::string suff
                     j["title"] =  suffix;
                     j["IP"] = dot2underscore(get_client_ip());
                     response.body() = j.dump(4);
-                    response.set(http::field::content_type, "text/plain");
+                    response.set(http::field::content_type, "application/json");
                     response.prepare_payload();
                     return true;
                 }
@@ -280,12 +280,13 @@ bool request_handler_text_gen::get_title_file(std::string path, std::string suff
                         INFO << "Read from: " << titlepath;
                         response.result(http::status::ok);
                         json j;
-                        j["content"] = filecontent;
+                        json filecontent_json = json::parse(filecontent);
+                        j["content"] = filecontent_json;
                         j["status"] = "readed";
                         j["title"] =  suffix;
                         j["IP"] = dot2underscore(get_client_ip());
                         response.body() = j.dump(4);
-                        response.set(http::field::content_type, "text/plain");
+                        response.set(http::field::content_type, "application/json");
                         response.prepare_payload();
                         return true;
                     }
