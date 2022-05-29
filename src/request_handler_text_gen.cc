@@ -24,12 +24,15 @@ namespace http = boost::beast::http;
     
 */
 
+
+// helper function used to get the data from curl
 static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
     ((std::string*)userp)->append((char*)contents, size * nmemb);
     return size * nmemb;
 }
 
+// replace dot with underscore (used to transform client ip like 127.0.0.1 to 127_0_0_1, more suitable name as a folder)
 std::string request_handler_text_gen::dot2underscore(std::string text)
 {
     std::string text_copy = text;
@@ -37,7 +40,7 @@ std::string request_handler_text_gen::dot2underscore(std::string text)
     return text_copy;
 }
 
-// these functions can be lifted to the parent class
+// encapsulation of a bad request response
 void request_handler_text_gen::prepare_bad_request_response(http::response<http::string_body>& response)
 {
     response.result(http::status::bad_request);
@@ -46,6 +49,7 @@ void request_handler_text_gen::prepare_bad_request_response(http::response<http:
     response.prepare_payload();
 }
 
+// encapsulation of a not found response
 void request_handler_text_gen::prepare_not_found_response(http::response<http::string_body>& response)
 {
     response.result(http::status::not_found);
@@ -54,6 +58,7 @@ void request_handler_text_gen::prepare_not_found_response(http::response<http::s
     response.prepare_payload();
 }
 
+// encapsulation of an internal server error response
 void request_handler_text_gen::prepare_internal_server_error_response(http::response<http::string_body>& response)
 {
     response.result(http::status::internal_server_error);
@@ -62,6 +67,7 @@ void request_handler_text_gen::prepare_internal_server_error_response(http::resp
     response.prepare_payload();
 }
 
+// send request to third-party api using curl
 bool request_handler_text_gen::curl_api(std::string input, std::string& output)
 {
     const char* input_c_str = input.c_str();
@@ -99,6 +105,7 @@ bool request_handler_text_gen::curl_api(std::string input, std::string& output)
     return false;
 }
 
+// parse the raw output from the third-party api
 bool request_handler_text_gen::parse_raw_output(const std::string& raw_output, std::string& output)
 {   
     try {
@@ -110,7 +117,7 @@ bool request_handler_text_gen::parse_raw_output(const std::string& raw_output, s
     } 
     // catch all the exceptions
     catch (...) {
-        WARNING << "cannot parse JSON output or bad response from the third-party API, response from that API: " << raw_output << "\n";
+        WARNING << get_client_ip() << ": cannot parse JSON output or bad response from the third-party API, response from that API: " << raw_output << "\n";
         return false;
     }
 }
@@ -158,7 +165,7 @@ bool request_handler_text_gen::parse_post_body(std::string body, std::map<std::s
         }
         return false;
     } catch (...) {
-        WARNING <<"cannot parse the post request body from: " << get_client_ip() << " with request body: " << body << "\n";
+        WARNING << get_client_ip() << ": cannot parse the post request body with request body: " << body;
         return false;
     }
 
@@ -168,9 +175,11 @@ bool request_handler_text_gen::handle_post_request(http::request<http::string_bo
 {
     std::string input = request.body();
     std::map<std::string, std::string> token_map;
-    if ( !(parse_post_body(input, token_map)))
+    if ( !(parse_post_body(input, token_map))) // cannot parse the post request body
     {
         prepare_bad_request_response(response);
+        response.body() = post_format_msg; // error msg to user
+        response.prepare_payload();
         return false;
     }
 
@@ -180,12 +189,17 @@ bool request_handler_text_gen::handle_post_request(http::request<http::string_bo
     std::string raw_output;
     std::string output;
 
+    // either text prompt or title does not match the required regex
     if ( (!check_prompts_validity(text_prompt)) || (!check_title_validity(title)))
     {
-        prepare_bad_request_response(response); // error message to user?
+        prepare_bad_request_response(response);
+        response.body() = valid_input_msg; // error msg to user
+        response.prepare_payload();
         return false;
     }
 
+    bool file_system_error = false;
+    // get a text paragraph from the third-party api, and parse the JSON raw output
     if (curl_api(text_prompt, raw_output))
     {
         if (parse_raw_output(raw_output, output)) {
@@ -193,7 +207,7 @@ bool request_handler_text_gen::handle_post_request(http::request<http::string_bo
             response.body() = output; 
             response.set(http::field::content_type, "text/plain");
             response.prepare_payload();
-
+            // save the entry (title, text prompt and text generated) as JSON to filesystem
             std::string folder = get_dir() + "/" + dot2underscore(get_client_ip());
             if (create_dir(folder))
             {
@@ -205,15 +219,20 @@ bool request_handler_text_gen::handle_post_request(http::request<http::string_bo
                 std::string entry = j.dump(4);
                 if (write_to_file(path, entry))
                     return true;
-                else
-                    WARNING << "cannot store user's input from " << get_client_ip() << "with title " << title << "\n";
+                else {
+                    WARNING << get_client_ip() << ": cannot store user's input with title: " << title;
+                    file_system_error = true;
+                }
             } else {
-                WARNING << "cannot create dir for " << get_client_ip() << "\n";
+                WARNING << get_client_ip() << ": cannot create dir";
+                file_system_error = true;
             }
         }
     }
 
     prepare_internal_server_error_response(response);
+    response.body() = file_system_error ? file_system_msg : api_communication_msg;// error msg to user
+    response.prepare_payload();
 	return false;
 }
 
@@ -246,7 +265,7 @@ bool request_handler_text_gen::get_ip_file_list(std::string path, std::string su
         }
     }
     prepare_not_found_response(response);
-    WARNING << "Cannot find folder for " << path << "\n";
+    WARNING << get_client_ip() << ": cannot find folder for " << path << "\n";
     return false;
 }
 
@@ -261,7 +280,7 @@ bool request_handler_text_gen::get_title_file(std::string path, std::string suff
                 if(remove)// remove the file
                 {
                     boost::filesystem::remove(titlepath);
-                    INFO << "Removing: " << titlepath;
+                    INFO << get_client_ip() << ": removing: " << titlepath;
                     response.result(http::status::ok);
                     json j;
                     j["status"] = "removed";
@@ -293,7 +312,7 @@ bool request_handler_text_gen::get_title_file(std::string path, std::string suff
                     else
                     {
                         prepare_not_found_response(response);
-                        WARNING << "Cannot read from file for " << titlepath << "\n";
+                        WARNING << get_client_ip() << ": cannot read from file for " << titlepath << "\n";
                         return false;
                     }
                 }
@@ -301,13 +320,13 @@ bool request_handler_text_gen::get_title_file(std::string path, std::string suff
             else
             {
                 prepare_not_found_response(response);
-                WARNING << "Cannot open file for " << titlepath << "\n";
+                WARNING << get_client_ip() << ": cannot open file for " << titlepath << "\n";
                 return false;
             }
         }
     }
     prepare_not_found_response(response);
-    WARNING << "Cannot find folder for " << path << "\n";
+    WARNING << get_client_ip() << ": cannot find folder for " << path << "\n";
     return false;
 }
 
@@ -326,6 +345,7 @@ bool request_handler_text_gen::handle_get_request(http::request<http::string_bod
     std::string path = get_dir() + "/" + dot2underscore(get_client_ip());
     bool result;
 
+    // if url is like /text_gen, return the html to server user's post request
     if (suffix == "")
     {
         path = "../static/static1/text.html";
@@ -342,7 +362,7 @@ bool request_handler_text_gen::handle_get_request(http::request<http::string_bod
         }
 
     } 
-    // if suffix is history?, it means the url == prefix (eg /txt_gen/), we return all the file name for given ip address
+    // if suffix is history?, we return all the file name for given ip address
     else if (suffix == "history?")
     {
         result =  get_ip_file_list(path, suffix, response);
@@ -361,14 +381,18 @@ bool request_handler_text_gen::handle_delete_request(http::request<http::string_
     std::string suffix;
     if (! check_request_url(std::string(request.target()), suffix, false))
     {
+        INFO << get_client_ip() << ": URL: " << std::string(request.target()) <<  "not valid";
         prepare_bad_request_response(response);
+        response.body() = invalid_url_msg;
+        response.prepare_payload();
         return false;
     }
     std::string path = get_dir() + "/" + dot2underscore(get_client_ip());
-    return get_title_file(path, suffix, response, true);// set delete flag to true.
+    return get_title_file(path, suffix, response, true); // set delete flag to true.
 
 }
 
+// for front-end purpose
 bool request_handler_text_gen::handle_options_request(http::request<http::string_body> request, http::response<http::string_body>& response)
 {
     response.result(http::status::no_content);

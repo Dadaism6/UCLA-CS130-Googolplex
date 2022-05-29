@@ -55,7 +55,7 @@ bool request_handler::create_dir(std::string path) {
 // speicial parsing, if url == prefix/, return true with empty key, used for get list
 bool request_handler::check_request_url(std::string url, std::string& key, bool for_get) {
     std::string prefix = get_prefix() + "/";
-    INFO << "Prefix is: " << prefix << "  url is: " << url;
+    INFO << get_client_ip() << ": prefix is: " << prefix << "  url is: " << url;
     size_t pos = url.find(prefix);
     if (pos != std::string::npos && pos == 0 && url.length() > prefix.length()) {
         key = std::string(url.substr(prefix.length()));
