@@ -105,10 +105,10 @@ else
 fi
 
 sleep 0.1
-curl localhost:80/static1/index.html > ./tmp.html
+curl localhost:80/static1/text.html > ./tmp.html
 sleep 0.1
 echo "Compare the result"
-if cmp -s ../static/static1/index.html ./tmp.html ; then
+if cmp -s ../static/static1/text.html ./tmp.html ; then
     rm ./tmp.html
     echo -e "Test 4.4 (html page) pass"
 else
