@@ -14,7 +14,9 @@ struct content_type {
         {".jpeg", "image/jpeg"},
         {".png", "image/png"},
         {".gif", "image/gif"},
-        {".zip", "application/zip"}
+        {".zip", "application/zip"},
+        {".css", "text/css"},
+        {".js", "text/javascript"}
     };
 
     std::string content_type_str = "text/plain";

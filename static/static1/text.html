@@ -5,18 +5,20 @@
     <title>Title</title>
 </head>
 <body>
-<script type="application/javascript" src="../static1/script.js"></script>
+<script type="text/javascript" src="../static1/script.js"></script>
+<link rel="stylesheet" type="text/css" href="../static1/style.css">
 Googolplex AI Text Generator
-<br>
+<br><br>
 <form onsubmit="return false">
-    <label for="fname">Title:</label><br><br>
+    <label>Title:</label><br><br>
     <input type="text" id="title" name="title" maxlength="20" size="40"><br><br>
-    <label for="fname">Text prompt:</label><br><br>
+    <label>Text prompt:</label><br><br>
     <input type="text" id="prompt" name="prompt" maxlength="50" size="40"><br><br>
     <input type="submit" value="Submit" onclick="textPOST()"><br><br>
+    <input type="submit" value="Get History" onclick="historyGET()"><br><br>
 </form>
 <p id="wait"></p>
-<br>
 <p id="text_response"></p>
+<p id="history"></p>
 </body>
 </html>

@@ -1,0 +1,54 @@
+/*Reference: https://github.com/chhikaradi1993/Expandable-table-row/blob/master/index.html*/
+body {
+    font-family: arial, sans-serif;
+}
+
+table {
+    width: 500px;
+    border: none;
+    border-top: 1px solid #EEEEEE;
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+}
+
+td,
+th {
+    border: 1px solid #EEEEEE;
+    border-top: none;
+    text-align: left;
+    padding: 8px;
+    color: #363D41;
+    font-size: 14px;
+}
+
+tr {
+    background-color: #fff;
+    border: none;
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    justify-content: flex-start;
+}
+
+tr:first-child:hover {
+    cursor: default;
+    background-color: #fff;
+}
+
+tr:hover {
+    background-color: #EEF4FD;
+}
+
+.hidden-row {
+    border-top: none;
+    display: grid;
+    grid-column: 1/-1;
+    justify-content: flex-start;
+    color: #AEB1B3;
+    font-size: 13px;
+    background-color: #fff;
+}
+
+.hidden-element {
+    display: none;
+}
