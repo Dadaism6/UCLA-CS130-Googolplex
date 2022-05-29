@@ -41,11 +41,11 @@ class SessionTest:public::testing::Test
             block_arg.handler_type = "BlockHandler";
             config_arg crud_arg;
             crud_arg.location = "/api";
-            crud_arg.root = "./temp";
+            crud_arg.root = "./temp1";
             crud_arg.handler_type = "CrudHandler";
             config_arg text_gen_arg;
             text_gen_arg.location = "/text_gen";
-            text_gen_arg.root = "./temp";
+            text_gen_arg.root = "./temp2";
             text_gen_arg.handler_type = "TextGenHandler";
             routes["/echo"] = std::shared_ptr<EchoHandlerFactory>(new EchoHandlerFactory(echo_arg));
             routes["/static"] = std::shared_ptr<StaticHandlerFactory>(new StaticHandlerFactory(static_arg));
@@ -56,7 +56,8 @@ class SessionTest:public::testing::Test
             routes["/text_gen"] = std::shared_ptr<TextGenHandlerFactory>(new TextGenHandlerFactory(text_gen_arg));
         }
         ~SessionTest() {
-             boost::filesystem::remove_all("./temp");
+             boost::filesystem::remove_all("./temp1");
+             boost::filesystem::remove_all("./temp2");
         }
 
     protected:
@@ -249,6 +250,16 @@ TEST_F(SessionTest, TextGenRequest) {
     session s(io_service, routes);
     rep = s.generate_response(request_data_text_gen, request_data_text_gen_length);
     EXPECT_EQ(rep.result(), http::status::ok);
+}
+
+// bad crud root directory
+TEST_F(SessionTest, CrudFactoryBadRoot) {
+    config_arg bad_crud_arg;
+    bad_crud_arg.root = "./tmp/tmp/tmp/tmp/temp1"; // dir that cannot be created
+    bad_crud_arg.location = "/api_bad";
+    bad_crud_arg.handler_type = "CrudHandler";
+    ASSERT_DEATH({CrudHandlerFactory* ptr = new CrudHandlerFactory(bad_crud_arg);}, "");
+    EXPECT_TRUE(true);
 }
 
 // test recycle and delete
