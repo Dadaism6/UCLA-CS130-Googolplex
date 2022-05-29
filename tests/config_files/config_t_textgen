@@ -1,0 +1,6 @@
+listen   80;
+
+location /text_gen TextGenHandler {
+    root ../text_gen_tmp;
+    api-key c97c056c-bb68-4ee5-82b6-97bd2e47c1b6;
+}

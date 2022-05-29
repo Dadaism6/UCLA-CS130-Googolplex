@@ -217,7 +217,6 @@ sleep 0.1
 echo "Compare the result"
 if cmp -s ../crud_data/Shoes/1 ../static/static1/crud_post.txt ; then
     echo -e "Test 7.1 pass"
-    continue
 else
     rm ../crud_data/Shoes/1
     echo -e "Test 7.1 fail - content not same"
@@ -276,9 +275,98 @@ sleep 0.1
 echo "Check for deletion"
 if ! test -f ../crud_data/Shoes/1 ; then
     echo -e "Test 7.5 pass"
-    exit 0
 else
     rm ../crud_data/Shoes/1
-    echo -e "Test 7.5 fail - file found"
+    echo -e "Test 7.5 fail - file deletion failed"
+    exit 1
+fi
+
+#Test 8: TextGen Handler
+#Test 8.1: POST
+echo "Test8.1: POST"
+sleep 6
+cd ../build
+timeout 20s ./bin/webserver ../tests/config_files/config_t_textgen &> /dev/null &
+cd ../tests
+sleep 0.3
+curl -X POST -d "title=hello&prompt=hello" http://localhost:80/text_gen > ./tmp1
+sleep 0.5
+echo "Compare the result"
+valid_status_post=`grep -q "hello" <./tmp1; echo $?`
+if [ $valid_status_post -eq 0 ]; then
+    echo -e "Test 8.1 pass"
+else
+    rm ./tmp1
+    echo -e "Test 8.1 fail - content not expected"
+    rm -rf ../text_gen_tmp
+    exit 1
+fi
+
+#Test 8.2: GET HTML
+echo "Test8.2: GET HTML"
+sleep 0.1
+curl http://localhost:80/text_gen > ./tmp2
+sleep 0.1
+echo "Compare the result"
+if cmp -s ../static/static1/text.html ./tmp2 ; then
+    rm ./tmp2
+    echo -e "Test 8.2 pass"
+else
+    rm ./tmp2
+    echo -e "Test 8.2 fail - content not same"
+    rm -rf ../text_gen_tmp
+    exit 1
+fi
+
+#Test 8.3: GET HISTORY
+echo "Test8.3: GET HISTORY"
+sleep 0.1
+curl http://localhost:80/text_gen/history? > ./tmp3
+sleep 0.1
+echo "Compare the result"
+valid_status_get=`grep -q "[hello]" <./tmp3; echo $?`
+if [ $valid_status_get -eq 0 ]; then
+    echo -e "Test 8.3 pass"
+    rm ./tmp3
+    continue
+else
+    rm ./tmp3
+    echo -e "Test 8.3 fail - content not expected"
+    rm -rf ../text_gen_tmp
+    exit 1
+fi
+
+#Test 8.4: GET READ
+echo "Test8.4: GET READ"
+sleep 0.1
+curl http://localhost:80/text_gen/hello > ./tmp4
+valid_status_get_file=`grep -q -F -f ./tmp1 ./tmp4; echo $?`
+sleep 0.1
+echo "Compare the result"
+if [ $valid_status_get_file -eq 0 ] ; then
+    rm ./tmp1
+    rm ./tmp4
+    echo -e "Test 8.4 pass"
+else
+    rm ./tmp1
+    rm ./tmp4
+    echo -e "Test 8.4 fail - content not expected"
+    rm -rf ../text_gen_tmp
+    exit 1
+fi
+
+#Test 8.5: DELETE
+echo "Test8.5: DELETE"
+sleep 0.1
+curl -X DELETE http://localhost:80/text_gen/hello
+sleep 0.1
+echo "Check for deletion"
+if ! test -f ../text_gen_tmp/127_0_0_1/hello ; then
+    rm -rf ../text_gen_tmp
+    echo -e "Test 8.5 pass"
+    exit 0
+else
+    rm -rf ../text_gen_tmp
+    echo -e "Test 8.5 fail - file deletion failed"
     exit 1
 fi
