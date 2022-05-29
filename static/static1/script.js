@@ -14,7 +14,10 @@ const crudPOST = async () => {
 const textPOST = async () => {
     document.getElementById("text_response").innerHTML = "";
     document.getElementById("history").innerHTML = "";
-    document.getElementById("wait").innerHTML = "Please wait for several seconds";
+    document.getElementById("wait").innerHTML = `<div class="spinner-grow text-primary" role="status">
+                                                    <span class="sr-only"></span>
+                                                </div>
+                                                Loading...`;
     var title = document.getElementById('title').value;
     var prompt = document.getElementById('prompt').value;
     var text_body = "title=" + title + "&prompt=" + prompt;
@@ -22,7 +25,7 @@ const textPOST = async () => {
         method: 'POST',
         body: text_body,
     });
-    document.getElementById("wait").innerHTML = "Here is the result:";
+    document.getElementById("wait").innerHTML = `Here is the result:`;
     document.getElementById("text_response").innerHTML = await response.text();
 }
 

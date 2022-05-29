@@ -3,21 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
 </head>
 <body>
 <script type="text/javascript" src="../static1/script.js"></script>
 <link rel="stylesheet" type="text/css" href="../static1/style.css">
-Googolplex AI Text Generator
+<nav class="navbar navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">10<sup>Googolplex</sup></a>
+        Googolplex AI Text Generator
+    </div>
+  </nav>
 <br><br>
 <form onsubmit="return false">
-    <label>Title:</label><br><br>
-    <input type="text" id="title" name="title" maxlength="20" size="40"><br><br>
-    <label>Text prompt:</label><br><br>
-    <input type="text" id="prompt" name="prompt" maxlength="50" size="40"><br><br>
-    <input type="submit" value="Submit" onclick="textPOST()"><br><br>
-    <input type="submit" value="Get History" onclick="historyGET()"><br><br>
-</form>
-<p id="wait"></p>
+    <div class="mb-3">
+      <label for="Title" class="form-label">Title:</label>
+      <input type="text" class="form-control" id="title" name="title" maxlength="20" aria-describedby="emailHelp">
+      <div id="TitleHelp" class="form-text">Title is used to retrive the history, please limits the length to less than 20!</div>
+    </div>
+    <div class="mb-3">
+      <label for="Prompt" class="form-label">Text prompt:</label>
+      <input type="text" class="form-control" id="prompt" name="prompt" maxlength="50" size="40">
+      <div id="TitleHelp" class="form-text">The prompts that start the text generation, longer prompts work better!</div>
+    </div>
+    <button type="submit" class="btn btn-primary" onclick="textPOST()">Submit</button>
+    <button type="submit" class="btn btn-primary" onclick="historyGET()">Get History</button>
+  </form>
+<p id="wait">
+</p>
 <p id="text_response"></p>
 <p id="history"></p>
 </body>
