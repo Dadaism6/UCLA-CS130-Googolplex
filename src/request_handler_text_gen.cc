@@ -379,7 +379,11 @@ bool request_handler_text_gen::handle_get_request(http::request<http::string_bod
 bool request_handler_text_gen::handle_delete_request(http::request<http::string_body> request, http::response<http::string_body>& response)
 {
     std::string suffix;
-    if (! check_request_url(std::string(request.target()), suffix, false))
+    // replace "%20" with " "
+    std::string url = std::string(request.target());
+    std::regex space("%20");
+    url = std::regex_replace(url, space, " ");
+    if (! check_request_url(url, suffix, false))
     {
         INFO << get_client_ip() << ": URL: " << std::string(request.target()) <<  "not valid";
         prepare_bad_request_response(response);
