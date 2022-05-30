@@ -21,7 +21,7 @@ const textPOST = async () => {
     var title = document.getElementById('title').value;
     var prompt = document.getElementById('prompt').value;
     var text_body = "title=" + title + "&prompt=" + prompt;
-    const response = await fetch('http://34.82.72.149:80/text_generate', {
+    const response = await fetch('http://34.82.72.149:80/text', {
         method: 'POST',
         body: text_body,
     });
@@ -30,18 +30,17 @@ const textPOST = async () => {
         document.getElementById("text_response").innerHTML = await response.text();
     } else {
         document.getElementById("wait").innerHTML = 'Error occurs:';
-        document.getElementById("text_response").innerHTML = "<h4>Bad Request</h4>Whoops, errors happen in the process: <ul>\
-            <li>storing the data to server\\'s filesystem</li></ul>Please wait for a moment and try again";
     }
+    document.getElementById("text_response").innerHTML = await response.text();
 }
 
 const textGET = async () => {
-    const response = await fetch('http://34.82.72.149:80/text_generate/Hello');
+    const response = await fetch('http://34.82.72.149:80/text/Hello');
     const myJson = await response.json();
 }
 
 const delete_text = async (target) => {
-    const url = 'http://34.82.72.149:80/text_generate/' + target
+    const url = 'http://34.82.72.149:80/text/' + target
     const response = await fetch(url, {
         method: 'DELETE',
     });
@@ -49,7 +48,7 @@ const delete_text = async (target) => {
 }
 
 const get_single_history = async (target) => {
-    const url = 'http://34.82.72.149:80/text_generate/' + target
+    const url = 'http://34.82.72.149:80/text/' + target
     const response = await fetch(url);
     const history_parsed = await response.json();
     return history_parsed;
@@ -58,7 +57,7 @@ const get_single_history = async (target) => {
 const historyGET = async () => {
     document.getElementById("text_response").innerHTML = "";
     document.getElementById("wait").innerHTML = "";
-    const response = await fetch('http://34.82.72.149:80/text_generate/history?');
+    const response = await fetch('http://34.82.72.149:80/text/history?');
     const table_head = "<table>\n" +
     "  <tr onClick='viewHidden(this)'>\n" +
     "    <th>Index</th>\n" +

@@ -8,11 +8,11 @@ WORKDIR /usr/src/project/build
 
 # Build and test
 RUN cmake ..
-RUN make
+RUN make -j4
 RUN ctest --output-on_failure
 WORKDIR /usr/src/project/build_coverage
 RUN cmake -DCMAKE_BUILD_TYPE=Coverage ..
-RUN make coverage
+RUN make coverage -j4
 
 ### Deploy container ###
 # Define deploy stage
