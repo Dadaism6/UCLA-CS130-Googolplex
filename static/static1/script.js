@@ -52,29 +52,39 @@ const get_single_history = async (target) => {
 const historyGET = async () => {
     document.getElementById("text_response").innerHTML = "";
     const response = await fetch('http://34.82.72.149:80/text_generate/history?');
-    const history = await response.json();
-    let history_list = history['title list']
-    history_list = history_list.substring(1, history_list.length - 1);
-    history_list = history_list.split(',');
-
     const table_head = "<table>\n" +
-        "  <tr onClick='viewHidden(this)'>\n" +
-        "    <th>Index</th>\n" +
-        "    <th>Title</th>\n" +
-        "    <th>Prompt</th>\n" +
-        "  </tr>"
-    let tables = "";
-    for (let i = 0; i < history_list.length; i++) {
-        let curr = await get_single_history(history_list[i]);
-        let content = curr['content'];
-        tables += "<tr onClick='viewHidden(this)'>" +
-            "<td>" + i + "</td>" +
-            "<td>" + content['title'] + "</td>" +
-            "<td>" + content['text_prompt'] + "</td>" +
-            "<td class='hidden-row hidden-element'>" + content['output'] + "<input type=\"submit\" value=\"Delete\" onclick=\"delete_text('" + history_list[i] + "')\"><br><br>" + "</td>" +
-            "</tr>";
+    "  <tr onClick='viewHidden(this)'>\n" +
+    "    <th>Index</th>\n" +
+    "    <th>Title</th>\n" +
+    "    <th>Prompt</th>\n" +
+    "  </tr>";
+
+    if ( !response.ok) {
+        document.getElementById("history").innerHTML = table_head + '</table>';
+    } else {
+        const history = await response.json();
+        let history_list = history['title list'];
+
+        history_list = history_list.substring(1, history_list.length - 1);
+        if ( !history_list.length) {
+            history_list = [];
+        } else {
+            history_list = history_list.split(',');
+        }
+
+        let tables = "";
+        for (let i = 0; i < history_list.length; i++) {
+            let curr = await get_single_history(history_list[i]);
+            let content = curr['content'];
+            tables += "<tr onClick='viewHidden(this)'>" +
+                "<td>" + i + "</td>" +
+                "<td>" + content['title'] + "</td>" +
+                "<td>" + content['text_prompt'] + "</td>" +
+                "<td class='hidden-row hidden-element'>" + content['output'] + "<input type=\"submit\" value=\"Delete\" onclick=\"delete_text('" + history_list[i] + "')\"><br><br>" + "</td>" +
+                "</tr>";
+        }
+        document.getElementById("history").innerHTML = table_head + tables + '</table>';
     }
-    document.getElementById("history").innerHTML = table_head + tables + '</table>';
 }
 
 const viewHidden = (element) => {
