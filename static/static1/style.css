@@ -52,3 +52,20 @@ tr:hover {
 .hidden-element {
     display: none;
 }
+
+.form-control {
+    width:35%;
+}
+
+.my-container {
+    margin: 20px;
+    padding: 0;
+}
+
+.black-form-text {
+    color: #000000;
+}
+
+.navbar-dark .navbar-brand {
+    color: #FFFFFF;
+}

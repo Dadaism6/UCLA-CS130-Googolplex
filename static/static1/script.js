@@ -25,8 +25,14 @@ const textPOST = async () => {
         method: 'POST',
         body: text_body,
     });
-    document.getElementById("wait").innerHTML = `Here is the result:`;
-    document.getElementById("text_response").innerHTML = await response.text();
+    if (response.ok) {
+        document.getElementById("wait").innerHTML = 'Here is the result:';
+        document.getElementById("text_response").innerHTML = await response.text();
+    } else {
+        document.getElementById("wait").innerHTML = 'Error occurs:';
+        document.getElementById("text_response").innerHTML = "<h4>Bad Request</h4>Whoops, errors happen in the process: <ul>\
+            <li>storing the data to server\\'s filesystem</li></ul>Please wait for a moment and try again";
+    }
 }
 
 const textGET = async () => {
@@ -51,6 +57,7 @@ const get_single_history = async (target) => {
 
 const historyGET = async () => {
     document.getElementById("text_response").innerHTML = "";
+    document.getElementById("wait").innerHTML = "";
     const response = await fetch('http://34.82.72.149:80/text_generate/history?');
     const table_head = "<table>\n" +
     "  <tr onClick='viewHidden(this)'>\n" +
@@ -71,7 +78,10 @@ const historyGET = async () => {
         } else {
             history_list = history_list.split(',');
         }
-
+        if (history_list.length === 0) {
+            document.getElementById("history").innerHTML = "<div id=\"NoHistoryHelp\" class=\"black-form-text\"> No history to display, please try to submit some requests. </div>";
+            return;
+        }
         let tables = "";
         for (let i = 0; i < history_list.length; i++) {
             let curr = await get_single_history(history_list[i]);

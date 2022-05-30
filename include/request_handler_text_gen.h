@@ -20,15 +20,15 @@ class request_handler_text_gen: public request_handler
         std::string api_key;
 
         // error messages
-        std::string post_format_msg = "<html><head><title>Bad Request</title></head><body><h2>Required POST request body format: title=xxx&prompt=xxx</h2></body></html>";
-        std::string valid_input_msg = "<html><head><title>Bad Request</title></head><body><h2>valid title: <ul><li>at least 1 character and at most 20 characters</li>\
-            <li>only contains letters, numeric characters, special characters (\".\", \"_\", \"-\", and \" \")</li></ul></h2> <h2>valid text prompt:<ul>\
-            <li>at least 1 character and at most 50 characters</li><li>only contains letters, numeric characters, special characters (\"?\", \",\", \"_\", \"-\", and \" \")</li></ul></h2></body></html>";
-        std::string api_communication_msg = "<html><head><title>Bad Request</title></head><body><h2>Whoops, errors happen in the process: <ul>\
-            <li>communication with the text gnereation API</li></ul></h2><h2>Please wait for a moment and try again</h2></body></html>";
-        std::string file_system_msg = "<html><head><title>Bad Request</title></head><body><h2>Whoops, errors happen in the process: <ul>\
-            <li>storing the data to server\'s filesystem</li></ul></h2><h2>Please wait for a moment and try again</h2></body></html>";
-        std::string invalid_url_msg = "<html><head><title>Bad Request</title></head><body><h2>The URL you entered is not valid</h2></body></html>";
+        std::string post_format_msg = "<h4>Bad Request</h4>Required POST request body format: title=xxx&prompt=xxx";
+        std::string valid_input_msg = "<h4>Bad Request</h4><h5>Invalid title:</h5> <ul><li>at least 1 character and at most 20 characters\
+            </li> <li>only contains letters, numeric characters, special characters (\".\", \"_\", \"-\", and \" \")</li></ul><h5>Invalid text prompt:\
+            </h5> <ul><li>at least 1 character and at most 50 characters</li><li>only contains letters, numeric characters, special characters (\"?\", \",\", \"_\", \"-\", and \" \")</li></ul>";
+        std::string api_communication_msg = "<h4>Bad Request</h4>Whoops, errors happen in the process: <ul>\
+            <li>communication with the text generation API</li></ul>Please wait for a moment and try again";
+        std::string file_system_msg = "<h4>Bad Request</h4>Whoops, errors happen in the process: <ul>\
+            <li>storing the data to server\'s filesystem</li></ul>Please wait for a moment and try again";
+        std::string invalid_url_msg = "<h4>Bad Request</h4>The URL you entered is not valid";
         
         // data processing
         bool curl_api(std::string input, std::string& output);
