@@ -11,7 +11,7 @@ steps:
     '-f', 'docker/base.Dockerfile',
     '-t', 'googolplex:base',
     '-t', 'gcr.io/$PROJECT_ID/googolplex:base',
-    '--cache-from', 'gcr.io/$PROJECT_ID/googolplex:base',
+    # '--cache-from', 'gcr.io/$PROJECT_ID/googolplex:base',
     '.'
   ]
 - name: 'gcr.io/cloud-builders/docker'
